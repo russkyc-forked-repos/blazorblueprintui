@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## 2026-03-02
 
+### Added
+
+- **BbDynamicForm** — Schema-driven form rendering component that generates forms from JSON Schema definitions.
+  - `Text`, `Number`, `Date`, `DateTime`, `Boolean`, `Enum`, and `File` field types with automatic input rendering.
+  - Inline validation with per-field error display.
+  - Horizontal, inline, and vertical layouts with configurable `LabelWidth`.
+  - Hidden field values are automatically cleared when fields become invisible.
+  - Text/value pairs via JSON Schema `oneOf` for select-style fields.
+  - Demo page with field type gallery and interactive examples.
+
 ### Fixed
 
 - **BbSelect**: Performance — set `ForceMount=false` on portal so items only exist in the DOM when the dropdown is open; set `IsFixed=true` on cascading context to eliminate redundant notifications; added `ShouldRender` gate and cached attributes/CSS constants on `BbSelectItem`.
