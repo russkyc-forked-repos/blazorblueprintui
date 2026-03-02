@@ -69,6 +69,7 @@ public partial class BbRadialBar : SeriesBase
             CoordinateSystem = "polar",
             RoundCap = RoundCap,
             ColorBy = "data",
+            Emphasis = new EChartsEmphasisOption { Disabled = true },
             Label = new EChartsLabelOption
             {
                 Show = false

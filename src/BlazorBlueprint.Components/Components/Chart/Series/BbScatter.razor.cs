@@ -74,6 +74,7 @@ public partial class BbScatter : SeriesBase
             Type = "scatter",
             Name = GetResolvedName(),
             SymbolSize = SymbolSize,
+            Emphasis = new EChartsEmphasisOption { Disabled = true }
         };
 
         if (!string.IsNullOrEmpty(SymbolSizeKey))

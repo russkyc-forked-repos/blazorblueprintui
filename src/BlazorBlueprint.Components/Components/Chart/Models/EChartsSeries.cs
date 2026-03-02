@@ -311,6 +311,10 @@ internal sealed class EChartsLabelOption
 
 internal sealed class EChartsEmphasisOption
 {
+    [JsonPropertyName("disabled")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Disabled { get; set; }
+
     [JsonPropertyName("itemStyle")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public EChartsItemStyleOption? ItemStyle { get; set; }

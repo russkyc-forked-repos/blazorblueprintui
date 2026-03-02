@@ -128,6 +128,7 @@ public partial class BbFunnel : SeriesBase
                 BorderColor = "var(--background)",
                 BorderWidth = Gap > 0 ? Gap : null
             },
+            Emphasis = new EChartsEmphasisOption { Disabled = true }
         };
 
         if (!string.IsNullOrEmpty(DataKey) && !string.IsNullOrEmpty(NameKey))

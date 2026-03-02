@@ -145,6 +145,7 @@ public partial class BbPie : SeriesBase
             },
             Emphasis = new EChartsEmphasisOption
             {
+                Disabled = true,
                 Scale = false
             }
         };
