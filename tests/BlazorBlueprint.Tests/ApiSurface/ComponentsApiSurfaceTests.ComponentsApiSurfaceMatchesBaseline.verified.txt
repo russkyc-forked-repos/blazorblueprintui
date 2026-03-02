@@ -606,6 +606,11 @@
   - TriggerContent : RenderFragment
   - ParentGrid : BbDataGrid<TData> [CascadingParameter]
 
+### BbDataGridExpandColumn`1 (BlazorBlueprint.Components)
+  - Pinned : ColumnPinning
+  - Width : String
+  - ParentGrid : BbDataGrid<TData> [CascadingParameter]
+
 ### BbDataGridPropertyColumn`2 (BlazorBlueprint.Components)
   - CellClass : String
   - CellTemplate : RenderFragment<TData>
@@ -652,6 +657,7 @@
   - AriaLabel : String
   - Class : String
   - Columns : RenderFragment
+  - DetailTemplate : RenderFragment<TData>
   - EmptyTemplate : RenderFragment
   - EnableKeyboardNavigation : Boolean
   - InitialPageSize : Int32
@@ -663,6 +669,8 @@
   - MinColumnWidth : Int32
   - OnColumnReorder : EventCallback<ValueTuple<String, Int32>>
   - OnColumnResize : EventCallback<ValueTuple<String, String>>
+  - OnRowCollapse : EventCallback<TData>
+  - OnRowExpand : EventCallback<TData>
   - OnSort : EventCallback<IReadOnlyList<SortDefinition>>
   - PageSizes : Int32[]
   - Reorderable : Boolean
