@@ -86,8 +86,9 @@ public partial class BbHeatmap : SeriesBase
             {
                 Show = true,
                 Formatter = LabelFormatter,
-                Color = LabelColor,
-                FontSize = LabelFontSize
+                Color = LabelColor ?? "var(--foreground)",
+                FontSize = LabelFontSize,
+                TextBorderWidth = 0
             };
         }
 

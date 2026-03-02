@@ -114,7 +114,9 @@ public partial class BbScatter : SeriesBase
             {
                 Show = true,
                 Position = ToEChartsPosition(LabelPosition),
-                Formatter = LabelFormatter
+                Formatter = LabelFormatter,
+                Color = "var(--foreground)",
+                TextBorderWidth = 0
             };
         }
 

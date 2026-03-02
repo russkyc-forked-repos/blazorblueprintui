@@ -167,8 +167,9 @@ public partial class BbPie : SeriesBase
                 Show = showLabel,
                 Position = ToEChartsPosition(LabelPosition),
                 Formatter = LabelFormatter,
-                Color = LabelColor,
-                FontSize = LabelFontSize
+                Color = LabelColor ?? "var(--foreground)",
+                FontSize = LabelFontSize,
+                TextBorderWidth = 0
             };
             series.LabelLine = showLabel
                 ? new EChartsLabelLineOption

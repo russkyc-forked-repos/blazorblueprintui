@@ -300,6 +300,14 @@ internal sealed class EChartsLabelOption
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Formatter { get; set; }
 
+    [JsonPropertyName("textBorderColor")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TextBorderColor { get; set; }
+
+    [JsonPropertyName("textBorderWidth")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? TextBorderWidth { get; set; }
+
     [JsonPropertyName("rotate")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object? Rotate { get; set; }
