@@ -15,6 +15,7 @@
 
     @* ── Inner layout container ──────────────────────────────────────────── *@
     <div class="@ContainerCssClass"
+         @ref="_containerRef"
          role="@GetAriaRole()"
          aria-label="@AriaLabel"
          aria-multiselectable="false">
@@ -27,7 +28,8 @@
             @* Drop indicator shown above position[i] when reordering *@
             @if (AllowReorder && IsInDragMode && ShouldShowDropIndicator(position))
             {
-                <div class="@DropIndicatorClass"
+                <div class="@GetDropIndicatorClass()"
+                     data-flip-ignore="true"
                      role="separator"
                      aria-hidden="true" />
             }
@@ -51,7 +53,7 @@
                      @ondragstart:stopPropagation="true"
                      @ondragend="@HandleItemDragEnd"
                      @ondragenter="@(() => HandleItemDragEnter(position))"
-                     @ondragenter:stopPropagation="true"
+                     @ondragover:preventDefault="true"
                      @onkeydown="@((e) => HandleItemKeyDown(e, item, position))">
 
                     @* Use DragItemTemplate when this item is being dragged *@

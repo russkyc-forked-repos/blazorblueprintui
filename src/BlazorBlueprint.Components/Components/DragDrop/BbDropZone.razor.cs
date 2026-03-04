@@ -43,6 +43,15 @@ public partial class BbDropZone<T> : ComponentBase, IDisposable where T : notnul
     public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
+    /// Gets or sets a template that renders a preview of the item being dragged
+    /// when the cursor is hovering over this zone and the drop is allowed.
+    /// Only used when <see cref="ChildContent"/> is not set.
+    /// The template receives the dragged item as its <c>context</c>.
+    /// </summary>
+    [Parameter]
+    public RenderFragment<T>? DragItemTemplate { get; set; }
+
+    /// <summary>
     /// Gets or sets a per-zone function that overrides the container-level
     /// <see cref="BbDropContainer{T}.CanDrop"/> check.
     /// Return <c>true</c> to allow a drop, <c>false</c> to reject it.

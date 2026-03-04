@@ -940,6 +940,7 @@
   - CanDrop : Func<T, Boolean>
   - ChildContent : RenderFragment
   - Class : String
+  - DragItemTemplate : RenderFragment<T>
   - DragOverClass : String
   - DragOverNoDropClass : String
   - OnItemDropped : EventCallback<DropItemInfo<T>>

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using BlazorBlueprint.Primitives.Utilities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace BlazorBlueprint.Components;
 
@@ -54,6 +55,14 @@ public partial class BbSortable<T> : ComponentBase, IDisposable where T : notnul
     private int _mouseDropIndex = -1;    // updated by ondragenter on items  (mouse DnD)
     private int _keyboardTargetIndex = -1; // updated by arrow keys              (keyboard DnD)
     private string _announcement = string.Empty;
+
+    // ── JS interop / animation ────────────────────────────────────────────────────
+    private IJSObjectReference? _jsModule;
+    private ElementReference _containerRef;
+    private bool _needsFlip;
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; } = default!;
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Cascading parameter
@@ -194,12 +203,47 @@ public partial class BbSortable<T> : ComponentBase, IDisposable where T : notnul
     private void OnContextTransactionChanged(object? sender, EventArgs e) => StateHasChanged();
 
     /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                    "import", "./_content/BlazorBlueprint.Components/js/drag-drop.js");
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+            {
+                // JS interop not available (prerendering or circuit disconnect)
+            }
+
+            return;
+        }
+
+        if (_needsFlip && _jsModule is not null)
+        {
+            _needsFlip = false;
+
+            try
+            {
+                await _jsModule.InvokeVoidAsync("playFlip", _containerRef, 250);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException) { }
+        }
+    }
+
+    /// <inheritdoc />
     public void Dispose()
     {
         if (Container is not null)
         {
             Container.TransactionStarted -= OnContextTransactionChanged;
             Container.TransactionEnded -= OnContextTransactionChanged;
+        }
+
+        if (_jsModule is not null)
+        {
+            _ = _jsModule.DisposeAsync().AsTask();
         }
 
         GC.SuppressFinalize(this);
@@ -367,6 +411,18 @@ public partial class BbSortable<T> : ComponentBase, IDisposable where T : notnul
         StateHasChanged();
     }
 
+    private async Task CaptureFlipPositionsAsync()
+    {
+        if (_jsModule is not null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("capturePositions", _containerRef);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException) { }
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────────
     // Zone-level drag event handlers
     // ─────────────────────────────────────────────────────────────────────────────
@@ -409,6 +465,9 @@ public partial class BbSortable<T> : ComponentBase, IDisposable where T : notnul
 
         var item = GetDraggedItem();
         var sourceZone = GetSourceZone();
+
+        await CaptureFlipPositionsAsync();
+        _needsFlip = true;
 
         await CommitLocalTransactionAsync(dropIdx);
 
@@ -457,6 +516,8 @@ public partial class BbSortable<T> : ComponentBase, IDisposable where T : notnul
             {
                 var dropIdx = _keyboardTargetIndex >= 0 ? _keyboardTargetIndex : index;
                 _keyboardTargetIndex = -1;
+                await CaptureFlipPositionsAsync();
+                _needsFlip = true;
                 await CommitLocalTransactionAsync(dropIdx);
                 break;
             }
@@ -506,13 +567,7 @@ public partial class BbSortable<T> : ComponentBase, IDisposable where T : notnul
 
     private string ContainerCssClass => ClassNames.cn(
         Layout == SortableLayout.List ? "flex flex-col" : "grid",
-        "gap-2 transition-colors duration-200",
-        _dragOverCount > 0 && IsInDragMode && CanDropCurrentItem()
-            ? "ring-2 ring-primary/30 ring-offset-2 rounded-lg"
-            : null,
-        _dragOverCount > 0 && IsInDragMode && !CanDropCurrentItem()
-            ? "ring-2 ring-destructive/30 ring-offset-2 rounded-lg"
-            : null,
+        "gap-2",
         ContainerClass
     );
 
@@ -532,8 +587,10 @@ public partial class BbSortable<T> : ComponentBase, IDisposable where T : notnul
         );
     }
 
-    private static string DropIndicatorClass =>
-        "h-0.5 rounded-full bg-primary animate-in fade-in-0 slide-in-from-top-1 duration-150 mx-0.5 my-0.5";
+    private string GetDropIndicatorClass() =>
+        Layout == SortableLayout.Grid
+            ? "rounded-lg border-2 border-dashed border-primary/60 bg-primary/5 animate-in fade-in-0 duration-150 min-h-16"
+            : "h-0.5 rounded-full bg-primary animate-in fade-in-0 slide-in-from-top-1 duration-150 mx-0.5 my-0.5";
 
     private string GetAriaRole() =>
         Layout == SortableLayout.Grid ? "grid" : "list";
