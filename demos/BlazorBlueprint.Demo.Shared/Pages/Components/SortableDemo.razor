@@ -123,8 +123,7 @@
                                     ZoneIdentifier="@col.Id"
                                     AllowReorder="true"
                                     Class="flex-1"
-                                    AriaLabel="@($"{col.Name} column")"
-                                    EmptyTemplate="@(() => @<p class="text-xs text-muted-foreground/60 text-center py-2">Drop cards here</p>)">
+                                    AriaLabel="@($"{col.Name} column")">
                             <ItemTemplate Context="card">
                                 <BbCard Class="cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow duration-200">
                                     <BbCardContent Class="p-3 space-y-1">
@@ -175,8 +174,7 @@
                     <BbSortable T="BasicItem"
                                 Items="_cloneTarget"
                                 ZoneIdentifier="clone-dst"
-                                AriaLabel="Clone target list"
-                                EmptyTemplate="@(() => @<p class="text-xs text-muted-foreground px-1">Drop items here to clone them.</p>)">
+                                AriaLabel="Clone target list">
                         <ItemTemplate Context="item">
                             <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none">
                                 <span aria-hidden="true">📎</span>
