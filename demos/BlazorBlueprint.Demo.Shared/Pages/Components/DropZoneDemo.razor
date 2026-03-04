@@ -1,0 +1,276 @@
+@page "/components/drop-zone"
+
+<PageTitle>DropZone Component - Blazor Blueprint</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">DropZone</h1>
+            <p class="text-xl text-muted-foreground">
+                A sink-only drop target that accepts dragged items from
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">BbSortable</code> components.
+                Combine with <code class="text-xs bg-muted px-1 py-0.5 rounded">BbDropContainer</code>
+                to build trash cans, inboxes, archive areas, and more.
+            </p>
+        </div>
+    </div>
+
+    @* ── 1. Basic: sortable list → drop zone ────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Basic</h2>
+            <p class="text-sm text-muted-foreground">
+                Drag files from the list into the archive zone. The zone shows built-in
+                drag-state feedback automatically when no <code class="text-xs bg-muted px-1 py-0.5 rounded">ChildContent</code> is provided.
+            </p>
+        </div>
+
+        <BbDropContainer T="FileItem" ItemDropped="HandleFileDrop">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold text-muted-foreground">Files</h3>
+                    <BbSortable T="FileItem"
+                                Items="_files"
+                                ZoneIdentifier="files"
+                                AllowReorder="true"
+                                AriaLabel="Files list"
+                                OnItemDropped="HandleFileDrop">
+                        <ItemTemplate Context="file">
+                            <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm cursor-grab select-none">
+                                <span aria-hidden="true">📄</span>
+                                <span>@file.Name</span>
+                            </div>
+                        </ItemTemplate>
+                    </BbSortable>
+                    @if (_files.Count == 0)
+                    {
+                        <p class="text-xs text-muted-foreground px-1">All files archived.</p>
+                    }
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold text-muted-foreground">Archive</h3>
+                    <BbDropZone T="FileItem"
+                                ZoneIdentifier="archive"
+                                AriaLabel="Archive drop zone"
+                                Class="min-h-[160px]"
+                                OnItemDropped="HandleFileDrop" />
+                    <p class="text-xs text-muted-foreground">@_archived.Count item(s) archived</p>
+                </div>
+            </div>
+        </BbDropContainer>
+
+        @if (_archived.Count > 0)
+        {
+            <BbButton Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="RestoreFiles">
+                Restore all
+            </BbButton>
+        }
+
+        <CodeBlock Source="Components/DropZone/basic.txt" />
+    </div>
+
+    @* ── 2. Custom child content ─────────────────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Custom Content</h2>
+            <p class="text-sm text-muted-foreground">
+                Provide <code class="text-xs bg-muted px-1 py-0.5 rounded">ChildContent</code> to replace
+                the default drop indicator with your own UI.
+            </p>
+        </div>
+
+        <BbDropContainer T="TaskCard" ItemDropped="HandleTaskDrop">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold text-muted-foreground">Tasks</h3>
+                    <BbSortable T="TaskCard"
+                                Items="_tasks"
+                                ZoneIdentifier="tasks"
+                                AriaLabel="Tasks list"
+                                OnItemDropped="HandleTaskDrop">
+                        <ItemTemplate Context="task">
+                            <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm cursor-grab select-none">
+                                <span aria-hidden="true">✅</span>
+                                <span>@task.Title</span>
+                            </div>
+                        </ItemTemplate>
+                    </BbSortable>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold text-muted-foreground">Trash</h3>
+                    <BbDropZone T="TaskCard"
+                                ZoneIdentifier="trash"
+                                AriaLabel="Trash drop zone — drag items here to delete"
+                                Class="min-h-[160px]"
+                                OnItemDropped="HandleTaskDrop"
+                                DragOverClass="!border-destructive !bg-destructive/10">
+                        <div class="flex flex-col items-center gap-2 text-muted-foreground pointer-events-none select-none">
+                            <span class="text-3xl" aria-hidden="true">🗑️</span>
+                            <p class="text-sm font-medium">Drop to delete</p>
+                        </div>
+                    </BbDropZone>
+                </div>
+            </div>
+        </BbDropContainer>
+
+        <CodeBlock Source="Components/DropZone/basic.txt" />
+    </div>
+
+    @* ── 3. Restricted drop (CanDrop) ────────────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Restricted Drop</h2>
+            <p class="text-sm text-muted-foreground">
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">CanDrop</code> to accept only
+                matching items. Dragging a non-PDF shows a destructive border.
+            </p>
+        </div>
+
+        <BbDropContainer T="DocItem" ItemDropped="HandleDocDrop">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold text-muted-foreground">Documents</h3>
+                    <BbSortable T="DocItem"
+                                Items="_docs"
+                                ZoneIdentifier="docs"
+                                AriaLabel="Documents list"
+                                OnItemDropped="HandleDocDrop">
+                        <ItemTemplate Context="doc">
+                            <div class="flex items-center justify-between gap-2 p-3 rounded-lg border bg-card text-sm cursor-grab select-none">
+                                <div class="flex items-center gap-2">
+                                    <span aria-hidden="true">@(doc.Type == "PDF" ? "📕" : "🖼️")</span>
+                                    <span>@doc.Name</span>
+                                </div>
+                                <BbBadge Variant="@(doc.Type == "PDF" ? BadgeVariant.Default : BadgeVariant.Secondary)">
+                                    @doc.Type
+                                </BbBadge>
+                            </div>
+                        </ItemTemplate>
+                    </BbSortable>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold text-muted-foreground">PDF Archive (PDFs only)</h3>
+                    <BbDropZone T="DocItem"
+                                ZoneIdentifier="pdf-archive"
+                                CanDrop="@(doc => doc.Type == "PDF")"
+                                AriaLabel="PDF archive — accepts PDF files only"
+                                Class="min-h-[160px]"
+                                OnItemDropped="HandleDocDrop" />
+                </div>
+            </div>
+        </BbDropContainer>
+
+        <CodeBlock Source="Components/DropZone/can-drop.txt" />
+    </div>
+
+    @* ── Accessibility ─────────────────────────────────────────────────── *@
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                The drop zone element has <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code>
+                and a descriptive <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                Visual drag-state feedback is reflected in the accessible label so screen readers
+                can understand the zone's current status.
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="Navigate to the drop zone">
+                <BbKbd>Tab</BbKbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    @* ── API Reference ──────────────────────────────────────────────────── *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">API Reference</h2>
+            <p class="text-muted-foreground">Component properties and parameters.</p>
+        </div>
+        <ApiReference ComponentName="BbDropZone&lt;T&gt;">
+            <ApiParameter Name="ZoneIdentifier" Type="string" Default="">
+                Unique identifier. Must match the value expected by the container's
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">CanDrop</code> callback.
+            </ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                Custom content. When omitted the built-in drag-state indicator is shown.
+            </ApiParameter>
+            <ApiParameter Name="CanDrop" Type="Func&lt;T, bool&gt;?">
+                Overrides the container-level validation for this zone only.
+            </ApiParameter>
+            <ApiParameter Name="OnItemDropped" Type="EventCallback&lt;DropItemInfo&lt;T&gt;&gt;">
+                Fired when an item is successfully dropped.
+            </ApiParameter>
+            <ApiParameter Name="AriaLabel" Type="string?">
+                Accessible label. Defaults to "Drop zone {ZoneIdentifier}".
+            </ApiParameter>
+            <ApiParameter Name="DragOverClass" Type="string?">
+                Extra CSS classes when a valid drag is hovering.
+            </ApiParameter>
+            <ApiParameter Name="DragOverNoDropClass" Type="string?">
+                Extra CSS classes when a rejected drag is hovering.
+            </ApiParameter>
+            <ApiParameter Name="Class" Type="string?">
+                Additional CSS classes for the root element.
+            </ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    // ── Basic file archive ────────────────────────────────────────────────
+    private record FileItem(string Name);
+    private List<FileItem> _files    = [new("report.pdf"), new("data.csv"), new("notes.txt"), new("invoice.pdf")];
+    private List<FileItem> _archived = [];
+
+    private void HandleFileDrop(DropItemInfo<FileItem> info)
+    {
+        if (info.Item is null) return;
+        if (info.TargetZone == "archive")
+        {
+            _files.Remove(info.Item);
+            _archived.Add(info.Item);
+        }
+        else if (info.TargetZone == "files")
+        {
+            // reorder within the list
+            _files.Remove(info.Item);
+            _files.Insert(Math.Clamp(info.TargetIndex, 0, _files.Count), info.Item);
+        }
+    }
+
+    private void RestoreFiles()
+    {
+        _files.AddRange(_archived);
+        _archived.Clear();
+    }
+
+    // ── Task trash ───────────────────────────────────────────────────────
+    private record TaskCard(string Title);
+    private List<TaskCard> _tasks = [new("Write unit tests"), new("Update docs"), new("Review PR"), new("Fix bug #42")];
+
+    private void HandleTaskDrop(DropItemInfo<TaskCard> info)
+    {
+        if (info.Item is null) return;
+        if (info.TargetZone == "trash")
+        {
+            _tasks.Remove(info.Item);
+        }
+        else
+        {
+            _tasks.Remove(info.Item);
+            _tasks.Insert(Math.Clamp(info.TargetIndex, 0, _tasks.Count), info.Item);
+        }
+    }
+
+    // ── PDF-only drop zone ────────────────────────────────────────────────
+    private record DocItem(string Name, string Type);
+    private List<DocItem> _docs = [new("Invoice.pdf", "PDF"), new("Photo.jpg", "Image"), new("Budget.pdf", "PDF"), new("Logo.png", "Image")];
+
+    private void HandleDocDrop(DropItemInfo<DocItem> info)
+    {
+        if (info.Item is null || info.TargetZone != "pdf-archive") return;
+        _docs.Remove(info.Item);
+    }
+}

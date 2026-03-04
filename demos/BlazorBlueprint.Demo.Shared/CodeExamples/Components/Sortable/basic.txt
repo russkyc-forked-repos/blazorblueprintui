@@ -1,0 +1,32 @@
+@* Standalone sortable list – handles reorder internally *@
+<BbSortable T="TaskItem"
+            Items="_items"
+            ZoneIdentifier="tasks"
+            OnItemDropped="HandleReorder">
+    <ItemTemplate Context="item">
+        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm">
+            <span class="text-muted-foreground cursor-grab">⠿</span>
+            <span class="text-sm font-medium">@item.Title</span>
+        </div>
+    </ItemTemplate>
+</BbSortable>
+
+@code {
+    private record TaskItem(string Title);
+
+    private List<TaskItem> _items =
+    [
+        new("Design system"),
+        new("Build components"),
+        new("Write tests"),
+        new("Publish package"),
+    ];
+
+    private void HandleReorder(DropItemInfo<TaskItem> info)
+    {
+        if (info.Item is null) return;
+        _items.Remove(info.Item);
+        var idx = Math.Clamp(info.TargetIndex, 0, _items.Count);
+        _items.Insert(idx, info.Item);
+    }
+}

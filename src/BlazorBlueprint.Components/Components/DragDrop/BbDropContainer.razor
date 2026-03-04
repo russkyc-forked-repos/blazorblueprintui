@@ -1,0 +1,11 @@
+@namespace BlazorBlueprint.Components
+@typeparam T where T : notnull
+@attribute [CascadingTypeParameter(nameof(T))]
+
+<CascadingValue Value="this" IsFixed="false">
+    <div class="@CssClass">
+        @ChildContent
+    </div>
+    @* ARIA live region: announces drag events to screen readers *@
+    <div role="status" aria-live="polite" aria-atomic="true" class="sr-only">@_announcement</div>
+</CascadingValue>

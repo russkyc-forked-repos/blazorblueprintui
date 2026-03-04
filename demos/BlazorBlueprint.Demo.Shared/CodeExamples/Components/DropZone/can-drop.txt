@@ -1,0 +1,34 @@
+<BbDropContainer T="Document"
+                 ItemDropped="HandleItemDropped">
+    <div class="grid grid-cols-2 gap-4">
+        <BbSortable T="Document" Items="_docs" ZoneIdentifier="docs" OnItemDropped="HandleItemDropped">
+            <ItemTemplate Context="doc">
+                <div class="p-3 rounded-lg border bg-card text-sm cursor-grab">
+                    @doc.Name (@doc.Type)
+                </div>
+            </ItemTemplate>
+        </BbSortable>
+
+        <BbDropZone T="Document"
+                    ZoneIdentifier="pdf-only"
+                    CanDrop="@(doc => doc.Type == "PDF")"
+                    AriaLabel="PDF-only drop zone"
+                    Class="min-h-[160px]">
+            <div class="text-center text-muted-foreground text-sm">
+                <p class="font-medium">PDFs only</p>
+                <p class="text-xs">Other types will be rejected</p>
+            </div>
+        </BbDropZone>
+    </div>
+</BbDropContainer>
+
+@code {
+    private record Document(string Name, string Type);
+    private List<Document> _docs = [new("Invoice.pdf","PDF"), new("Photo.jpg","Image"), new("Budget.pdf","PDF")];
+
+    private void HandleItemDropped(DropItemInfo<Document> info)
+    {
+        if (info.Item is null || info.TargetZone != "pdf-only") return;
+        _docs.Remove(info.Item);
+    }
+}

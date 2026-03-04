@@ -1,0 +1,38 @@
+<BbDropContainer T="FileItem"
+                 ItemDropped="HandleItemDropped">
+    <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-2">
+            <h3 class="text-sm font-semibold">Files</h3>
+            <BbSortable T="FileItem"
+                        Items="_files"
+                        ZoneIdentifier="files"
+                        OnItemDropped="HandleItemDropped">
+                <ItemTemplate Context="file">
+                    <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm cursor-grab">
+                        <span>📄</span>
+                        <span>@file.Name</span>
+                    </div>
+                </ItemTemplate>
+            </BbSortable>
+        </div>
+
+        <div class="space-y-2">
+            <h3 class="text-sm font-semibold">Archive</h3>
+            <BbDropZone T="FileItem"
+                        ZoneIdentifier="archive"
+                        OnItemDropped="HandleItemDropped"
+                        Class="min-h-[160px]" />
+        </div>
+    </div>
+</BbDropContainer>
+
+@code {
+    private record FileItem(string Name);
+    private List<FileItem> _files = [new("report.pdf"), new("data.csv"), new("notes.txt")];
+
+    private void HandleItemDropped(DropItemInfo<FileItem> info)
+    {
+        if (info.Item is null) return;
+        _files.Remove(info.Item);
+    }
+}

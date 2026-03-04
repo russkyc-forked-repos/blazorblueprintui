@@ -1,0 +1,82 @@
+@namespace BlazorBlueprint.Components
+@typeparam T where T : notnull
+
+@{
+    var zoneItems = GetZoneItems();
+}
+
+<div class="@ZoneClass"
+     @ondragover="HandleZoneDragOver"
+     @ondragover:preventDefault="true"
+     @ondragenter="HandleZoneDragEnter"
+     @ondragleave="HandleZoneDragLeave"
+     @ondrop="HandleZoneDrop"
+     @ondrop:preventDefault="true">
+
+    @* ── Inner layout container ──────────────────────────────────────────── *@
+    <div class="@ContainerCssClass"
+         role="@GetAriaRole()"
+         aria-label="@AriaLabel"
+         aria-multiselectable="false">
+
+        @* Render items + optional drop indicators for sortable mode *@
+        @for (int i = 0; i <= zoneItems.Count; i++)
+        {
+            var position = i;
+
+            @* Drop indicator shown above position[i] when reordering *@
+            @if (AllowReorder && IsInDragMode && ShouldShowDropIndicator(position))
+            {
+                <div class="@DropIndicatorClass"
+                     role="separator"
+                     aria-hidden="true" />
+            }
+
+            @if (position < zoneItems.Count)
+            {
+                var item = zoneItems[position];
+                var isDragging = IsCurrentDraggedItem(item);
+                var isDisabled = IsItemDisabled(item);
+
+                <div class="@GetItemWrapperClass(item)"
+                     role="listitem"
+                     aria-roledescription="draggable item"
+                     aria-grabbed="@(isDragging ? "true" : "false")"
+                     aria-disabled="@(isDisabled ? "true" : "false")"
+                     draggable="@(IsItemDraggable(item) ? "true" : "false")"
+                     tabindex="@(IsItemDraggable(item) ? "0" : "-1")"
+                     data-dragging="@(isDragging ? "true" : "false")"
+                     @key="item"
+                     @ondragstart="@(() => HandleItemDragStart(item, position))"
+                     @ondragstart:stopPropagation="true"
+                     @ondragend="@HandleItemDragEnd"
+                     @ondragenter="@(() => HandleItemDragEnter(position))"
+                     @ondragenter:stopPropagation="true"
+                     @onkeydown="@((e) => HandleItemKeyDown(e, item, position))">
+
+                    @* Use DragItemTemplate when this item is being dragged *@
+                    @if (isDragging && DragItemTemplate is { } dragTpl)
+                    {
+                        @dragTpl(item)
+                    }
+                    else if (ItemTemplate is { } itemTpl)
+                    {
+                        @itemTpl(item)
+                    }
+                </div>
+            }
+        }
+
+        @* Custom extra content appended after items *@
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+    </div>
+
+    @* Standalone ARIA live region (used when not inside a BbDropContainer) *@
+    @if (GetEffectiveContext() is null)
+    {
+        <div role="status" aria-live="polite" aria-atomic="true" class="sr-only">@_announcement</div>
+    }
+</div>

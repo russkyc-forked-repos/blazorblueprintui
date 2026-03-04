@@ -1,0 +1,45 @@
+@* Restricted drop: only allow cards with matching priority *@
+<BbDropContainer T="PriorityCard"
+                 ItemDropped="HandleItemDropped">
+    <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-2">
+            <h3 class="text-sm font-semibold">High Priority</h3>
+            <BbSortable T="PriorityCard"
+                        Items="_highPriority"
+                        ZoneIdentifier="high"
+                        CanDrop="@(item => item.Priority == "high")"
+                        OnItemDropped="HandleItemDropped">
+                <ItemTemplate Context="card">
+                    <div class="p-3 rounded-lg border bg-destructive/10 text-sm">@card.Title</div>
+                </ItemTemplate>
+            </BbSortable>
+        </div>
+        <div class="space-y-2">
+            <h3 class="text-sm font-semibold">Low Priority</h3>
+            <BbSortable T="PriorityCard"
+                        Items="_lowPriority"
+                        ZoneIdentifier="low"
+                        CanDrop="@(item => item.Priority == "low")"
+                        OnItemDropped="HandleItemDropped">
+                <ItemTemplate Context="card">
+                    <div class="p-3 rounded-lg border bg-muted/50 text-sm">@card.Title</div>
+                </ItemTemplate>
+            </BbSortable>
+        </div>
+    </div>
+</BbDropContainer>
+
+@code {
+    private record PriorityCard(string Title, string Priority);
+    private List<PriorityCard> _highPriority = [new("Critical bug", "high"), new("Security patch", "high")];
+    private List<PriorityCard> _lowPriority  = [new("Update readme", "low"),  new("Add tests", "low")];
+
+    private void HandleItemDropped(DropItemInfo<PriorityCard> info)
+    {
+        if (info.Item is null) return;
+        var src = info.SourceZone == "high" ? _highPriority : _lowPriority;
+        var dst = info.TargetZone == "high" ? _highPriority : _lowPriority;
+        src.Remove(info.Item);
+        dst.Insert(Math.Clamp(info.TargetIndex, 0, dst.Count), info.Item);
+    }
+}

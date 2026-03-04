@@ -1,0 +1,19 @@
+<BbSortable T="TaskItem"
+            Items="_items"
+            ZoneIdentifier="tasks"
+            ItemDisabled="@(item => item.Locked)"
+            OnItemDropped="HandleReorder">
+    <ItemTemplate Context="item">
+        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-sm">
+            @if (item.Locked)
+            {
+                <span class="text-muted-foreground">🔒</span>
+            }
+            else
+            {
+                <span class="text-muted-foreground cursor-grab">⠿</span>
+            }
+            <span>@item.Title</span>
+        </div>
+    </ItemTemplate>
+</BbSortable>

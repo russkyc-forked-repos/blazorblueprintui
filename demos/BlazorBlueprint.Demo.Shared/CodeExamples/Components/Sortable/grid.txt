@@ -1,0 +1,35 @@
+@* Grid sortable with custom drag template *@
+<BbSortable T="GalleryItem"
+            Items="_photos"
+            ZoneIdentifier="gallery"
+            Layout="SortableLayout.Grid"
+            ContainerClass="grid-cols-3 gap-3"
+            OnItemDropped="HandleReorder">
+    <ItemTemplate Context="photo">
+        <div class="rounded-lg overflow-hidden border bg-card aspect-square flex items-center justify-center">
+            <span class="text-4xl select-none">@photo.Emoji</span>
+        </div>
+    </ItemTemplate>
+    <DragItemTemplate Context="photo">
+        <div class="rounded-lg border-2 border-dashed border-primary bg-primary/5 aspect-square flex items-center justify-center">
+            <span class="text-4xl opacity-50 select-none">@photo.Emoji</span>
+        </div>
+    </DragItemTemplate>
+</BbSortable>
+
+@code {
+    private record GalleryItem(string Emoji);
+
+    private List<GalleryItem> _photos =
+    [
+        new("🌅"), new("🏔️"), new("🌊"), new("🌲"),
+        new("🌺"), new("🦋"), new("🌙"), new("⭐"), new("🌈"),
+    ];
+
+    private void HandleReorder(DropItemInfo<GalleryItem> info)
+    {
+        if (info.Item is null) return;
+        _photos.Remove(info.Item);
+        _photos.Insert(Math.Clamp(info.TargetIndex, 0, _photos.Count), info.Item);
+    }
+}

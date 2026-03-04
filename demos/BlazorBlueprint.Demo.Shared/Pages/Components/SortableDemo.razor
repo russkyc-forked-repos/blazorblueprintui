@@ -1,0 +1,455 @@
+@page "/components/sortable"
+
+<PageTitle>Sortable Component - Blazor Blueprint</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">Sortable</h1>
+            <p class="text-xl text-muted-foreground">
+                Drag-and-drop sortable list or grid with keyboard support, animations,
+                and cross-zone transfers via <code class="text-xs bg-muted px-1 py-0.5 rounded">BbDropContainer</code>.
+            </p>
+        </div>
+    </div>
+
+    @* ── 1. Basic reorder ──────────────────────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Basic Reorder</h2>
+            <p class="text-sm text-muted-foreground">
+                Standalone sortable list. Drag items to reorder. Focus an item and press
+                <BbKbd>Space</BbKbd> to grab, <BbKbd>↑</BbKbd> / <BbKbd>↓</BbKbd> to move,
+                <BbKbd>Space</BbKbd> again to drop.
+            </p>
+        </div>
+
+        <BbSortable T="BasicItem"
+                    Items="_basicItems"
+                    ZoneIdentifier="basic"
+                    AriaLabel="Sortable task list"
+                    OnItemDropped="@(info => ReorderList(_basicItems, info))">
+            <ItemTemplate Context="item">
+                <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm select-none">
+                    <span class="text-muted-foreground text-lg" aria-hidden="true">⠿</span>
+                    <span class="text-sm font-medium">@item.Title</span>
+                </div>
+            </ItemTemplate>
+        </BbSortable>
+
+        <CodeBlock Source="Components/Sortable/basic.txt" />
+    </div>
+
+    @* ── 2. Kanban board ───────────────────────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Kanban Board</h2>
+            <p class="text-sm text-muted-foreground">
+                Multiple sortables share a <code class="text-xs bg-muted px-1 py-0.5 rounded">BbDropContainer</code>.
+                Drag cards between columns and reorder within each column.
+            </p>
+        </div>
+
+        <BbDropContainer T="KanbanCard" ItemDropped="HandleKanbanDrop">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                @foreach (var col in _kanbanColumns)
+                {
+                    <div class="flex flex-col gap-2 rounded-xl border bg-muted/30 p-3 min-h-[200px]">
+                        <div class="flex items-center justify-between px-1 pb-1">
+                            <h3 class="text-sm font-semibold">@col.Name</h3>
+                            <span class="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                                @col.Cards.Count
+                            </span>
+                        </div>
+                        <BbSortable T="KanbanCard"
+                                    Items="col.Cards"
+                                    ZoneIdentifier="@col.Id"
+                                    AllowReorder="true"
+                                    AriaLabel="@($"{col.Name} column")"
+                                    OnItemDropped="HandleKanbanDrop">
+                            <ItemTemplate Context="card">
+                                <BbCard Class="cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow duration-200">
+                                    <BbCardContent Class="p-3 space-y-1">
+                                        <p class="text-sm font-medium">@card.Title</p>
+                                        <p class="text-xs text-muted-foreground">@card.Description</p>
+                                    </BbCardContent>
+                                </BbCard>
+                            </ItemTemplate>
+                        </BbSortable>
+                    </div>
+                }
+            </div>
+        </BbDropContainer>
+
+        <CodeBlock Source="Components/Sortable/kanban.txt" />
+    </div>
+
+    @* ── 3. Grid sortable with drag template ──────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Grid Layout</h2>
+            <p class="text-sm text-muted-foreground">
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Layout="SortableLayout.Grid"</code> and control
+                columns via <code class="text-xs bg-muted px-1 py-0.5 rounded">ContainerClass</code>.
+                The <code class="text-xs bg-muted px-1 py-0.5 rounded">DragItemTemplate</code> shows a dashed
+                placeholder in the item's original position while dragging.
+            </p>
+        </div>
+
+        <BbSortable T="GalleryItem"
+                    Items="_gallery"
+                    ZoneIdentifier="gallery"
+                    Layout="SortableLayout.Grid"
+                    ContainerClass="grid-cols-3 gap-3"
+                    AriaLabel="Sortable photo gallery"
+                    OnItemDropped="@(info => ReorderList(_gallery, info))">
+            <ItemTemplate Context="photo">
+                <div class="rounded-lg overflow-hidden border bg-card aspect-square flex items-center justify-center hover:shadow-md transition-shadow duration-200 select-none">
+                    <span class="text-4xl">@photo.Emoji</span>
+                </div>
+            </ItemTemplate>
+            <DragItemTemplate Context="photo">
+                <div class="rounded-lg border-2 border-dashed border-primary bg-primary/5 aspect-square flex items-center justify-center">
+                    <span class="text-4xl opacity-40">@photo.Emoji</span>
+                </div>
+            </DragItemTemplate>
+        </BbSortable>
+
+        <CodeBlock Source="Components/Sortable/grid.txt" />
+    </div>
+
+    @* ── 4. Restricted drop with CanDrop ──────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Restricted Drop</h2>
+            <p class="text-sm text-muted-foreground">
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">CanDrop</code> to reject items that
+                don't belong in a zone. Rejected zones show a red ring.
+            </p>
+        </div>
+
+        <BbDropContainer T="PriorityItem" ItemDropped="HandlePriorityDrop">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full bg-destructive"></span>
+                        <h3 class="text-sm font-semibold">High Priority</h3>
+                    </div>
+                    <BbSortable T="PriorityItem"
+                                Items="_highPriority"
+                                ZoneIdentifier="high"
+                                CanDrop="@(item => item.Priority == "high")"
+                                AriaLabel="High priority zone"
+                                OnItemDropped="HandlePriorityDrop">
+                        <ItemTemplate Context="item">
+                            <div class="flex items-center gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5 text-sm select-none">
+                                <span>🔴</span>
+                                <span>@item.Title</span>
+                            </div>
+                        </ItemTemplate>
+                    </BbSortable>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full bg-muted-foreground"></span>
+                        <h3 class="text-sm font-semibold">Low Priority</h3>
+                    </div>
+                    <BbSortable T="PriorityItem"
+                                Items="_lowPriority"
+                                ZoneIdentifier="low"
+                                CanDrop="@(item => item.Priority == "low")"
+                                AriaLabel="Low priority zone"
+                                OnItemDropped="HandlePriorityDrop">
+                        <ItemTemplate Context="item">
+                            <div class="flex items-center gap-2 p-3 rounded-lg border bg-muted/30 text-sm select-none">
+                                <span>🔵</span>
+                                <span>@item.Title</span>
+                            </div>
+                        </ItemTemplate>
+                    </BbSortable>
+                </div>
+            </div>
+        </BbDropContainer>
+
+        <CodeBlock Source="Components/Sortable/can-drop.txt" />
+    </div>
+
+    @* ── 5. Disabled items ────────────────────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Disabled Items</h2>
+            <p class="text-sm text-muted-foreground">
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ItemDisabled</code> to lock
+                specific items in place.
+            </p>
+        </div>
+
+        <BbSortable T="LockedItem"
+                    Items="_lockedItems"
+                    ZoneIdentifier="locked-list"
+                    ItemDisabled="@(item => item.Locked)"
+                    AriaLabel="List with locked items"
+                    OnItemDropped="@(info => ReorderList(_lockedItems, info))">
+            <ItemTemplate Context="item">
+                <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-sm select-none @(item.Locked ? "opacity-60" : "")">
+                    @if (item.Locked)
+                    {
+                        <span aria-label="Locked">🔒</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted-foreground cursor-grab" aria-hidden="true">⠿</span>
+                    }
+                    <span>@item.Title</span>
+                    @if (item.Locked)
+                    {
+                        <BbBadge Variant="BadgeVariant.Secondary" Class="ml-auto text-xs">Locked</BbBadge>
+                    }
+                </div>
+            </ItemTemplate>
+        </BbSortable>
+
+        <CodeBlock Source="Components/Sortable/disabled.txt" />
+    </div>
+
+    @* ── Accessibility ──────────────────────────────────────────────────── *@
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                The sortable container has <code class="text-xs bg-muted px-1 py-0.5 rounded">role="list"</code>
+                (or <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code> for grid layout) and
+                an optional <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                Each item has <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listitem"</code>,
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-roledescription="draggable item"</code>,
+                and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-grabbed</code> updated during drag.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                Disabled items carry <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled="true"</code>
+                and <code class="text-xs bg-muted px-1 py-0.5 rounded">tabindex="-1"</code>.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                A visually-hidden <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-live="polite"</code> region
+                announces drag start, position changes, drop, and cancel events.
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="Grab the focused item to start keyboard drag">
+                <BbKbd>Space</BbKbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="Move grabbed item up (list) or left (grid)">
+                <BbKbd>↑</BbKbd> / <BbKbd>←</BbKbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="Move grabbed item down (list) or right (grid)">
+                <BbKbd>↓</BbKbd> / <BbKbd>→</BbKbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="Drop at the current position">
+                <BbKbd>Space</BbKbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="Cancel the drag and return item to its original position">
+                <BbKbd>Esc</BbKbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="Navigate between items">
+                <BbKbd>Tab</BbKbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    @* ── API Reference ──────────────────────────────────────────────────── *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">API Reference</h2>
+            <p class="text-muted-foreground">Component properties and parameters.</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="BbSortable&lt;T&gt;">
+                <ApiParameter Name="ZoneIdentifier" Type="string" Default="&quot;default&quot;">
+                    Unique identifier for this zone. Required when used inside <code class="text-xs bg-muted px-1 py-0.5 rounded">BbDropContainer</code>.
+                </ApiParameter>
+                <ApiParameter Name="Items" Type="IReadOnlyList&lt;T&gt;">
+                    The list of items to render and sort.
+                </ApiParameter>
+                <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;T&gt;?">
+                    Template for each item's normal appearance.
+                </ApiParameter>
+                <ApiParameter Name="DragItemTemplate" Type="RenderFragment&lt;T&gt;?">
+                    Alternate template shown in the item's original position while being dragged.
+                </ApiParameter>
+                <ApiParameter Name="Layout" Type="SortableLayout" Default="List">
+                    List or Grid layout.
+                </ApiParameter>
+                <ApiParameter Name="AllowReorder" Type="bool" Default="true">
+                    Allow reordering within this zone.
+                </ApiParameter>
+                <ApiParameter Name="AllowExternalDrop" Type="bool" Default="true">
+                    Accept items from other zones.
+                </ApiParameter>
+                <ApiParameter Name="CanDrop" Type="Func&lt;T, bool&gt;?">
+                    Per-zone drop validation (overrides container-level CanDrop).
+                </ApiParameter>
+                <ApiParameter Name="ItemDisabled" Type="Func&lt;T, bool&gt;?">
+                    Marks individual items as non-draggable.
+                </ApiParameter>
+                <ApiParameter Name="OnItemDropped" Type="EventCallback&lt;DropItemInfo&lt;T&gt;&gt;">
+                    Fired when an item is dropped. Contains item, source zone, target zone, and target index.
+                </ApiParameter>
+                <ApiParameter Name="ContainerClass" Type="string?">
+                    CSS classes for the inner container (use for grid columns, padding, etc.).
+                </ApiParameter>
+                <ApiParameter Name="ItemClass" Type="string?">
+                    CSS classes applied to every item wrapper.
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?">
+                    Accessible label for the sortable region.
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    Additional CSS classes for the outer wrapper.
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="BbDropContainer&lt;T&gt;">
+                <ApiParameter Name="CanDrop" Type="Func&lt;T, string, bool&gt;?">
+                    Global drop validation: receives item and target zone identifier.
+                </ApiParameter>
+                <ApiParameter Name="ItemDisabled" Type="Func&lt;T, bool&gt;?">
+                    Global predicate to disable dragging for specific items.
+                </ApiParameter>
+                <ApiParameter Name="ItemDropped" Type="EventCallback&lt;DropItemInfo&lt;T&gt;&gt;">
+                    Fired for every drop anywhere within the container.
+                </ApiParameter>
+                <ApiParameter Name="ItemPicked" Type="EventCallback&lt;T&gt;">
+                    Fired when a drag starts.
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    Additional CSS classes for the container element.
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DropItemInfo&lt;T&gt;">
+                <ApiParameter Name="Item" Type="T?">
+                    The item that was dropped.
+                </ApiParameter>
+                <ApiParameter Name="SourceZone" Type="string">
+                    Zone identifier where the drag started.
+                </ApiParameter>
+                <ApiParameter Name="TargetZone" Type="string">
+                    Zone identifier where the item was dropped.
+                </ApiParameter>
+                <ApiParameter Name="TargetIndex" Type="int">
+                    Insertion index in the target zone. Use to reorder your collection.
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    // ── Basic reorder ────────────────────────────────────────────────────
+    private record BasicItem(string Title);
+
+    private List<BasicItem> _basicItems =
+    [
+        new("Design system tokens"),
+        new("Build component library"),
+        new("Write documentation"),
+        new("Add unit tests"),
+        new("Publish to NuGet"),
+    ];
+
+    // ── Kanban board ─────────────────────────────────────────────────────
+    private record KanbanCard(string Id, string Title, string Description, string Column);
+
+    private sealed class KanbanColumn(string id, string name)
+    {
+        public string Id   { get; } = id;
+        public string Name { get; } = name;
+        public List<KanbanCard> Cards { get; set; } = [];
+    }
+
+    private List<KanbanColumn> _kanbanColumns =
+    [
+        new("todo", "To Do") { Cards =
+        [
+            new("k1", "Design mockups",    "Create UI wireframes for all components", "todo"),
+            new("k2", "Write specs",       "Document the API surface",                "todo"),
+            new("k3", "Set up CI/CD",      "GitHub Actions pipeline",                 "todo"),
+        ]},
+        new("doing", "In Progress") { Cards =
+        [
+            new("k4", "Build core API",    "REST endpoints and authentication",       "doing"),
+            new("k5", "Component library", "Blazor Blueprint integration",            "doing"),
+        ]},
+        new("done", "Done") { Cards =
+        [
+            new("k6", "Project scaffold",  "Repository and solution setup",           "done"),
+        ]},
+    ];
+
+    private void HandleKanbanDrop(DropItemInfo<KanbanCard> info)
+    {
+        if (info.Item is null) return;
+        var src = _kanbanColumns.FirstOrDefault(c => c.Id == info.SourceZone);
+        var dst = _kanbanColumns.FirstOrDefault(c => c.Id == info.TargetZone);
+        if (src is null || dst is null) return;
+        src.Cards.Remove(info.Item);
+        var updated = info.Item with { Column = info.TargetZone };
+        dst.Cards.Insert(Math.Clamp(info.TargetIndex, 0, dst.Cards.Count), updated);
+    }
+
+    // ── Grid gallery ─────────────────────────────────────────────────────
+    private record GalleryItem(string Emoji);
+
+    private List<GalleryItem> _gallery =
+    [
+        new("🌅"), new("🏔️"), new("🌊"),
+        new("🌲"), new("🌺"), new("🦋"),
+        new("🌙"), new("⭐"), new("🌈"),
+    ];
+
+    // ── Priority lanes ────────────────────────────────────────────────────
+    private record PriorityItem(string Title, string Priority);
+
+    private List<PriorityItem> _highPriority =
+    [
+        new("Critical security bug", "high"),
+        new("Production outage fix",  "high"),
+    ];
+
+    private List<PriorityItem> _lowPriority =
+    [
+        new("Update README",    "low"),
+        new("Refactor old code", "low"),
+        new("Add more tests",    "low"),
+    ];
+
+    private void HandlePriorityDrop(DropItemInfo<PriorityItem> info)
+    {
+        if (info.Item is null) return;
+        var src = info.SourceZone == "high" ? _highPriority : _lowPriority;
+        var dst = info.TargetZone == "high" ? _highPriority : _lowPriority;
+        src.Remove(info.Item);
+        dst.Insert(Math.Clamp(info.TargetIndex, 0, dst.Count), info.Item);
+    }
+
+    // ── Locked items ──────────────────────────────────────────────────────
+    private record LockedItem(string Title, bool Locked);
+
+    private List<LockedItem> _lockedItems =
+    [
+        new("Required: Terms of Service", Locked: true),
+        new("Optional: Marketing emails", Locked: false),
+        new("Required: Privacy policy",   Locked: true),
+        new("Optional: Newsletter",       Locked: false),
+        new("Optional: Product updates",  Locked: false),
+    ];
+
+    // ── Shared helper ─────────────────────────────────────────────────────
+    private static void ReorderList<TItem>(List<TItem> list, DropItemInfo<TItem> info) where TItem : notnull
+    {
+        if (info.Item is null) return;
+        list.Remove(info.Item);
+        list.Insert(Math.Clamp(info.TargetIndex, 0, list.Count), info.Item);
+    }
+}
