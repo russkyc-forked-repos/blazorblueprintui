@@ -1,96 +1,18 @@
-﻿@using System.Diagnostics.CodeAnalysis
+@namespace BlazorBlueprint.Components
+@typeparam TItem
 
-@implements IAsyncDisposable
-
-@inject IJSRuntime JsRuntime
-
-@typeparam T
-
-<div id="@Id">
-    @foreach (var item in Items)
+<div id="@Id"
+     role="list"
+     aria-label="@AriaLabel"
+     class="@CssClass"
+     @attributes="AdditionalAttributes">
+    @foreach (var item in Items ?? [])
     {
-        @if (SortableItemTemplate is not null)
+        @if (ItemTemplate is not null)
         {
-            @SortableItemTemplate(item)
+            @ItemTemplate(item)
         }
     }
 </div>
 
-@code {
-
-    private IJSObjectReference? _module;
-
-    [Parameter]
-    public RenderFragment<T>? SortableItemTemplate { get; set; }
-
-    [Parameter, AllowNull]
-    public List<T> Items { get; set; }
-
-    [Parameter]
-    public EventCallback<(int oldIndex, int newIndex)> OnUpdate { get; set; }
-
-    [Parameter]
-    public EventCallback<(int oldIndex, int newIndex)> OnRemove { get; set; }
-
-    [Parameter]
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-
-    [Parameter]
-    public string Group { get; set; } = Guid.NewGuid().ToString();
-
-    [Parameter]
-    public string? Pull { get; set; }
-
-    [Parameter]
-    public bool Put { get; set; } = true;
-
-    [Parameter]
-    public bool Sort { get; set; } = true;
-
-    [Parameter]
-    public string Handle { get; set; } = string.Empty;
-
-    [Parameter]
-    public string? Filter { get; set; }
-
-    [Parameter]
-    public bool ForceFallback { get; set; } = true;
-
-    private DotNetObjectReference<BbSortable<T>>? _ref;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _ref = DotNetObjectReference.Create(this);
-            _module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/BlazorBlueprint.Components/js/sortable.js");
-            await _module.InvokeAsync<string>("init", Id, Group, Pull, Put, Sort, Handle, Filter, _ref);
-        }
-    }
-
-    [JSInvokable]
-    public void OnUpdateJS(int oldIndex, int newIndex)
-    {
-        // invoke the OnUpdate event passing in the oldIndex and the newIndex
-        OnUpdate.InvokeAsync((oldIndex, newIndex));
-    }
-
-    [JSInvokable]
-    public void OnRemoveJS(int oldIndex, int newIndex)
-    {
-        // remove the item from the list
-        OnRemove.InvokeAsync((oldIndex, newIndex));
-    }
-
-    public void Dispose() => _ref?.Dispose();
-
-    public async ValueTask DisposeAsync()
-    {
-        _ref?.Dispose();
-        if (_module != null)
-        {
-            await _module.DisposeAsync();
-        }
-    }
-
-}
+<div role="status" aria-live="polite" aria-atomic="true" class="sr-only">@_liveAnnouncement</div>
