@@ -142,6 +142,17 @@
                                             {
                                                 <span>@column.Title</span>
                                             }
+                                            @if (column.Pinned != ColumnPinning.None)
+                                            {
+                                                <BbTooltip>
+                                                    <BbTooltipTrigger AsChild="false" Focusable="false" Class="inline-flex items-center">
+                                                        <LucideIcon Name="pin" Class="w-3.5 h-3.5 text-muted-foreground" />
+                                                    </BbTooltipTrigger>
+                                                    <BbTooltipContent Side="PopoverSide.Bottom">
+                                                        This column is pinned and cannot be moved
+                                                    </BbTooltipContent>
+                                                </BbTooltip>
+                                            }
                                             @if (column.Sortable && sortDirection != SortDirection.None)
                                             {
                                                 @if (sortDirection == SortDirection.Ascending)
