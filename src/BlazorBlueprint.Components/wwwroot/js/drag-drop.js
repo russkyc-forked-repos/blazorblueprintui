@@ -10,7 +10,7 @@
  *   JsOnAdd(oldIndex, newIndex)     — item added to this list from another group list
  *   JsOnRemove(oldIndex, newIndex)  — item removed from this list to another group list
  */
-import Sortable from './_content/BlazorBlueprint.Components/js/sortable.esm.js';
+import Sortable from './sortable.esm.js';
 
 /** @type {Map<Element, Sortable>} */
 const instances = new Map();
