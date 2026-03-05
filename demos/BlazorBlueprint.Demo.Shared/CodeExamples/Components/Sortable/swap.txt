@@ -1,29 +1,72 @@
-@* Swap="true" swaps items instead of inserting. Use SourceIndex + TargetIndex. *@
-<BbSortable T="MyItem"
-            Items="_items"
-            ZoneIdentifier="swap-list"
-            Swap="true"
-            OnItemDropped="HandleSwap">
-    <ItemTemplate Context="item">
-        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card">
-            <span class="text-sm font-medium">@item.Title</span>
-        </div>
-    </ItemTemplate>
-</BbSortable>
+@* Shared lists: items can be dragged between both lists.
+   OnRemove fires on the source BEFORE OnAdd fires on the target. *@
+<div class="grid grid-cols-2 gap-4">
+    <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-muted-foreground">List A</h3>
+        <BbDragDrop TItem="MyItem"
+                    Items="_listA"
+                    Group="shared"
+                    OnUpdate="@(args => SortList(_listA, args))"
+                    OnRemove="@(args => HandleRemove(_listA, args))"
+                    OnAdd="@(args => HandleAdd(_listA, args))"
+                    Class="flex flex-col gap-2 min-h-[4rem]">
+            <ItemTemplate Context="item">
+                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
+                    <span class="text-muted-foreground" aria-hidden="true">⠿</span>
+                    <span>@item.Name</span>
+                </div>
+            </ItemTemplate>
+        </BbDragDrop>
+    </div>
+    <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-muted-foreground">List B</h3>
+        <BbDragDrop TItem="MyItem"
+                    Items="_listB"
+                    Group="shared"
+                    OnUpdate="@(args => SortList(_listB, args))"
+                    OnRemove="@(args => HandleRemove(_listB, args))"
+                    OnAdd="@(args => HandleAdd(_listB, args))"
+                    Class="flex flex-col gap-2 min-h-[4rem]">
+            <ItemTemplate Context="item">
+                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
+                    <span class="text-muted-foreground" aria-hidden="true">⠿</span>
+                    <span>@item.Name</span>
+                </div>
+            </ItemTemplate>
+        </BbDragDrop>
+    </div>
+</div>
 
 @code {
-    private record MyItem(string Title);
-    private List<MyItem> _items = [new("Alpha"), new("Beta"), new("Gamma"), new("Delta")];
+    private record MyItem(string Name);
 
-    private void HandleSwap(DropItemInfo<MyItem> info)
+    private List<MyItem> _listA = Enumerable.Range(1, 5).Select(i => new MyItem($"Item {i}")).ToList();
+    private List<MyItem> _listB = Enumerable.Range(6, 5).Select(i => new MyItem($"Item {i}")).ToList();
+
+    // Holds the item being dragged across lists.
+    private MyItem? _draggedItem;
+
+    private void HandleRemove(List<MyItem> source, (int OldIndex, int NewIndex) args)
     {
-        if (info.Item is null) return;
-        // SourceIndex is the original position; TargetIndex is the swap partner
-        var srcIdx = info.SourceIndex;
-        var dstIdx = info.TargetIndex;
-        if (srcIdx >= 0 && dstIdx >= 0 && dstIdx < _items.Count)
-        {
-            (_items[srcIdx], _items[dstIdx]) = (_items[dstIdx], _items[srcIdx]);
-        }
+        if (args.OldIndex < 0 || args.OldIndex >= source.Count) { return; }
+        _draggedItem = source[args.OldIndex];
+        source.RemoveAt(args.OldIndex);
+    }
+
+    private void HandleAdd(List<MyItem> target, (int OldIndex, int NewIndex) args)
+    {
+        if (_draggedItem is null) { return; }
+        target.Insert(Math.Clamp(args.NewIndex, 0, target.Count), _draggedItem);
+        _draggedItem = null;
+    }
+
+    private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
+    {
+        var (oldIndex, newIndex) = args;
+        if (oldIndex < 0 || oldIndex >= list.Count) { return; }
+        var item = list[oldIndex];
+        list.RemoveAt(oldIndex);
+        if (newIndex < list.Count) { list.Insert(newIndex, item); }
+        else { list.Add(item); }
     }
 }

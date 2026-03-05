@@ -1,35 +1,32 @@
-@* Grid sortable with custom drag template *@
-<BbSortable T="GalleryItem"
+@* Grid sortable — pass any CSS grid class via the Class parameter *@
+<BbDragDrop TItem="GridItem"
             Items="_photos"
-            ZoneIdentifier="gallery"
-            Layout="SortableLayout.Grid"
-            ContainerClass="grid-cols-3 gap-3"
-            OnItemDropped="HandleReorder">
+            OnUpdate="@(args => SortList(_photos, args))"
+            Class="grid grid-cols-4 gap-3">
     <ItemTemplate Context="photo">
-        <div class="rounded-lg overflow-hidden border bg-card aspect-square flex items-center justify-center">
-            <span class="text-4xl select-none">@photo.Emoji</span>
+        <div class="flex items-center justify-center rounded-lg border bg-card shadow-sm select-none cursor-grab active:cursor-grabbing aspect-square text-3xl hover:shadow-md transition-shadow">
+            @photo.Emoji
         </div>
     </ItemTemplate>
-    <DragItemTemplate Context="photo">
-        <div class="rounded-lg border-2 border-dashed border-primary bg-primary/5 aspect-square flex items-center justify-center">
-            <span class="text-4xl opacity-50 select-none">@photo.Emoji</span>
-        </div>
-    </DragItemTemplate>
-</BbSortable>
+</BbDragDrop>
 
 @code {
-    private record GalleryItem(string Emoji);
+    private record GridItem(string Emoji);
 
-    private List<GalleryItem> _photos =
+    private List<GridItem> _photos =
     [
         new("🌅"), new("🏔️"), new("🌊"), new("🌲"),
-        new("🌺"), new("🦋"), new("🌙"), new("⭐"), new("🌈"),
+        new("🌺"), new("🦋"), new("🌙"), new("⭐"),
+        new("🌈"), new("🍀"), new("🔥"), new("❄️"),
     ];
 
-    private void HandleReorder(DropItemInfo<GalleryItem> info)
+    private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
     {
-        if (info.Item is null) return;
-        _photos.Remove(info.Item);
-        _photos.Insert(Math.Clamp(info.TargetIndex, 0, _photos.Count), info.Item);
+        var (oldIndex, newIndex) = args;
+        if (oldIndex < 0 || oldIndex >= list.Count) { return; }
+        var item = list[oldIndex];
+        list.RemoveAt(oldIndex);
+        if (newIndex < list.Count) { list.Insert(newIndex, item); }
+        else { list.Add(item); }
     }
 }

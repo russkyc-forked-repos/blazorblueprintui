@@ -1,45 +1,70 @@
-@* Restricted drop: only allow cards with matching priority *@
-<BbDropContainer T="PriorityCard"
-                 ItemDropped="HandleItemDropped">
-    <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-2">
-            <h3 class="text-sm font-semibold">High Priority</h3>
-            <BbSortable T="PriorityCard"
-                        Items="_highPriority"
-                        ZoneIdentifier="high"
-                        CanDrop="@(item => item.Priority == "high")"
-                        OnItemDropped="HandleItemDropped">
-                <ItemTemplate Context="card">
-                    <div class="p-3 rounded-lg border bg-destructive/10 text-sm">@card.Title</div>
-                </ItemTemplate>
-            </BbSortable>
-        </div>
-        <div class="space-y-2">
-            <h3 class="text-sm font-semibold">Low Priority</h3>
-            <BbSortable T="PriorityCard"
-                        Items="_lowPriority"
-                        ZoneIdentifier="low"
-                        CanDrop="@(item => item.Priority == "low")"
-                        OnItemDropped="HandleItemDropped">
-                <ItemTemplate Context="card">
-                    <div class="p-3 rounded-lg border bg-muted/50 text-sm">@card.Title</div>
-                </ItemTemplate>
-            </BbSortable>
-        </div>
+@* Put="false" prevents items from being dropped into a list from another group.
+   Useful for one-way transfers (source only, no accepts). *@
+<div class="grid grid-cols-2 gap-4">
+    <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-muted-foreground">Source only (cannot receive)</h3>
+        <BbDragDrop TItem="MyItem"
+                    Items="_source"
+                    Group="one-way"
+                    Put="false"
+                    OnUpdate="@(args => SortList(_source, args))"
+                    OnRemove="@(args => HandleRemove(args))"
+                    Class="flex flex-col gap-2">
+            <ItemTemplate Context="item">
+                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
+                    <span class="text-muted-foreground" aria-hidden="true">⠿</span>
+                    <span>@item.Name</span>
+                </div>
+            </ItemTemplate>
+        </BbDragDrop>
     </div>
-</BbDropContainer>
+    <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-muted-foreground">Target (accepts, cannot be dragged out)</h3>
+        <BbDragDrop TItem="MyItem"
+                    Items="_target"
+                    Group="one-way"
+                    Sort="true"
+                    OnUpdate="@(args => SortList(_target, args))"
+                    OnAdd="@(args => HandleAdd(args))"
+                    Class="flex flex-col gap-2 min-h-[4rem] rounded-lg border-2 border-dashed border-muted-foreground/30 p-2">
+            <ItemTemplate Context="item">
+                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
+                    <span class="text-muted-foreground" aria-hidden="true">⠿</span>
+                    <span>@item.Name</span>
+                </div>
+            </ItemTemplate>
+        </BbDragDrop>
+    </div>
+</div>
 
 @code {
-    private record PriorityCard(string Title, string Priority);
-    private List<PriorityCard> _highPriority = [new("Critical bug", "high"), new("Security patch", "high")];
-    private List<PriorityCard> _lowPriority  = [new("Update readme", "low"),  new("Add tests", "low")];
+    private record MyItem(string Name);
 
-    private void HandleItemDropped(DropItemInfo<PriorityCard> info)
+    private List<MyItem> _source = Enumerable.Range(1, 5).Select(i => new MyItem($"Item {i}")).ToList();
+    private List<MyItem> _target = [];
+    private MyItem? _draggedItem;
+
+    private void HandleRemove((int OldIndex, int NewIndex) args)
     {
-        if (info.Item is null) return;
-        var src = info.SourceZone == "high" ? _highPriority : _lowPriority;
-        var dst = info.TargetZone == "high" ? _highPriority : _lowPriority;
-        src.Remove(info.Item);
-        dst.Insert(Math.Clamp(info.TargetIndex, 0, dst.Count), info.Item);
+        if (args.OldIndex < 0 || args.OldIndex >= _source.Count) { return; }
+        _draggedItem = _source[args.OldIndex];
+        _source.RemoveAt(args.OldIndex);
+    }
+
+    private void HandleAdd((int OldIndex, int NewIndex) args)
+    {
+        if (_draggedItem is null) { return; }
+        _target.Insert(Math.Clamp(args.NewIndex, 0, _target.Count), _draggedItem);
+        _draggedItem = null;
+    }
+
+    private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
+    {
+        var (oldIndex, newIndex) = args;
+        if (oldIndex < 0 || oldIndex >= list.Count) { return; }
+        var item = list[oldIndex];
+        list.RemoveAt(oldIndex);
+        if (newIndex < list.Count) { list.Insert(newIndex, item); }
+        else { list.Add(item); }
     }
 }

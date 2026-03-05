@@ -1,19 +1,48 @@
-<BbSortable T="TaskItem"
+@* Set Filter to a CSS class to mark items as non-draggable (locked).
+   Draggable items can still be reordered; locked items stay in place. *@
+<BbDragDrop TItem="TaskItem"
             Items="_items"
-            ZoneIdentifier="tasks"
-            ItemDisabled="@(item => item.Locked)"
-            OnItemDropped="HandleReorder">
+            Filter="item-locked"
+            OnUpdate="@(args => SortList(_items, args))"
+            Class="flex flex-col gap-2">
     <ItemTemplate Context="item">
-        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-sm">
+        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-sm select-none @(item.Locked ? "item-locked opacity-60" : "cursor-grab")">
             @if (item.Locked)
             {
-                <span class="text-muted-foreground">🔒</span>
+                <span aria-label="Locked">🔒</span>
             }
             else
             {
-                <span class="text-muted-foreground cursor-grab">⠿</span>
+                <span class="text-muted-foreground" aria-hidden="true">⠿</span>
             }
             <span>@item.Title</span>
+            @if (item.Locked)
+            {
+                <BbBadge Variant="BadgeVariant.Secondary" Class="ml-auto text-xs">Locked</BbBadge>
+            }
         </div>
     </ItemTemplate>
-</BbSortable>
+</BbDragDrop>
+
+@code {
+    private record TaskItem(string Title, bool Locked);
+
+    private List<TaskItem> _items =
+    [
+        new("Required: Terms of Service", Locked: true),
+        new("Optional: Marketing emails",  Locked: false),
+        new("Required: Privacy policy",    Locked: true),
+        new("Optional: Newsletter",        Locked: false),
+        new("Optional: Product updates",   Locked: false),
+    ];
+
+    private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
+    {
+        var (oldIndex, newIndex) = args;
+        if (oldIndex < 0 || oldIndex >= list.Count) { return; }
+        var item = list[oldIndex];
+        list.RemoveAt(oldIndex);
+        if (newIndex < list.Count) { list.Insert(newIndex, item); }
+        else { list.Add(item); }
+    }
+}

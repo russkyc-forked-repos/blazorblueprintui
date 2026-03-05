@@ -1,38 +1,60 @@
-@* Clone="true" duplicates items on cross-zone drag. Check info.IsClone to skip source removal. *@
-<BbDropContainer T="MyItem" Clone="true" ItemDropped="HandleDrop">
-    <div class="grid grid-cols-2 gap-4">
-        <BbSortable T="MyItem" Items="_source" ZoneIdentifier="src" OnItemDropped="HandleDrop">
+@* Pull="clone" copies items into the target; the source list is never modified.
+   OnAdd on the target uses OldIndex (position in source) to insert a copy. *@
+<div class="grid grid-cols-2 gap-4">
+    <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-muted-foreground">Source (items stay)</h3>
+        <BbDragDrop TItem="MyItem"
+                    Items="_source"
+                    Group="clone-group"
+                    Pull="clone"
+                    OnUpdate="@(args => SortList(_source, args))"
+                    Class="flex flex-col gap-2">
             <ItemTemplate Context="item">
-                <div class="p-3 rounded-lg border bg-card text-sm">@item.Title</div>
+                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
+                    <span aria-hidden="true">📌</span>
+                    <span>@item.Title</span>
+                </div>
             </ItemTemplate>
-        </BbSortable>
-        <BbSortable T="MyItem" Items="_target" ZoneIdentifier="dst" OnItemDropped="HandleDrop">
-            <ItemTemplate Context="item">
-                <div class="p-3 rounded-lg border bg-card text-sm">@item.Title</div>
-            </ItemTemplate>
-        </BbSortable>
+        </BbDragDrop>
     </div>
-</BbDropContainer>
+    <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-muted-foreground">Target (receives copies)</h3>
+        <BbDragDrop TItem="MyItem"
+                    Items="_target"
+                    Group="clone-group"
+                    OnUpdate="@(args => SortList(_target, args))"
+                    OnAdd="HandleCloneAdd"
+                    Class="flex flex-col gap-2 min-h-[60px] rounded-lg border-2 border-dashed border-muted-foreground/30 p-2">
+            <ItemTemplate Context="item">
+                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
+                    <span aria-hidden="true">📎</span>
+                    <span>@item.Title</span>
+                </div>
+            </ItemTemplate>
+        </BbDragDrop>
+    </div>
+</div>
 
 @code {
     private record MyItem(string Title);
-    private List<MyItem> _source = [new("Template A"), new("Template B")];
+
+    private List<MyItem> _source = [new("Template A"), new("Template B"), new("Template C")];
     private List<MyItem> _target = [];
 
-    private void HandleDrop(DropItemInfo<MyItem> info)
+    // OldIndex is the position in _source (unchanged in clone mode).
+    private void HandleCloneAdd((int OldIndex, int NewIndex) args)
     {
-        if (info.Item is null) return;
+        if (args.OldIndex < 0 || args.OldIndex >= _source.Count) { return; }
+        _target.Insert(Math.Clamp(args.NewIndex, 0, _target.Count), _source[args.OldIndex]);
+    }
 
-        if (info.TargetZone == "dst")
-        {
-            // Clone: add copy to target, do NOT remove from source
-            _target.Insert(Math.Clamp(info.TargetIndex, 0, _target.Count), info.Item);
-        }
-        else if (info.TargetZone == "src" && !info.IsClone)
-        {
-            // Same-zone reorder within source
-            _source.Remove(info.Item);
-            _source.Insert(Math.Clamp(info.TargetIndex, 0, _source.Count), info.Item);
-        }
+    private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
+    {
+        var (oldIndex, newIndex) = args;
+        if (oldIndex < 0 || oldIndex >= list.Count) { return; }
+        var item = list[oldIndex];
+        list.RemoveAt(oldIndex);
+        if (newIndex < list.Count) { list.Insert(newIndex, item); }
+        else { list.Add(item); }
     }
 }

@@ -1,60 +1,79 @@
-@* Kanban board: drag cards between columns and reorder within each *@
-<BbDropContainer T="KanbanCard"
-                 ItemDropped="HandleItemDropped">
-    <div class="grid grid-cols-3 gap-4">
-        @foreach (var column in _columns)
-        {
-            <div class="flex flex-col gap-2 rounded-lg border bg-muted/30 p-3">
-                <h3 class="text-sm font-semibold text-muted-foreground px-1">@column.Name</h3>
-                <BbSortable T="KanbanCard"
-                            Items="column.Cards"
-                            ZoneIdentifier="@column.Id"
-                            AllowReorder="true"
-                            AriaLabel="@column.Name"
-                            OnItemDropped="HandleItemDropped">
-                    <ItemTemplate Context="card">
-                        <BbCard Class="cursor-grab active:cursor-grabbing">
-                            <BbCardContent Class="p-3">
-                                <p class="text-sm font-medium">@card.Title</p>
-                                <p class="text-xs text-muted-foreground mt-1">@card.Description</p>
-                            </BbCardContent>
-                        </BbCard>
-                    </ItemTemplate>
-                </BbSortable>
-            </div>
-        }
-    </div>
-</BbDropContainer>
+@* Kanban board: drag cards between columns and reorder within each column.
+   onRemove fires on the source BEFORE onAdd fires on the target, so _draggedCard
+   is always set when HandleKanbanAdd runs. *@
+<div class="grid grid-cols-3 gap-4">
+    @foreach (var col in _columns)
+    {
+        var column = col;
+        <div class="flex flex-col gap-2 rounded-xl border bg-muted/30 p-3 min-h-[200px]">
+            <h3 class="text-sm font-semibold px-1">@column.Name</h3>
+            <BbDragDrop TItem="KanbanCard"
+                        Items="column.Cards"
+                        Group="kanban"
+                        OnUpdate="@(args => SortList(column.Cards, args))"
+                        OnRemove="@(args => HandleKanbanRemove(column, args))"
+                        OnAdd="@(args => HandleKanbanAdd(column, args))"
+                        Class="flex flex-col gap-2 flex-1 min-h-[3rem]">
+                <ItemTemplate Context="card">
+                    <BbCard Class="cursor-grab active:cursor-grabbing">
+                        <BbCardContent Class="p-3">
+                            <p class="text-sm font-medium">@card.Title</p>
+                            <p class="text-xs text-muted-foreground mt-1">@card.Description</p>
+                        </BbCardContent>
+                    </BbCard>
+                </ItemTemplate>
+            </BbDragDrop>
+        </div>
+    }
+</div>
 
 @code {
-    private record KanbanCard(string Id, string Title, string Description, string Column);
+    private record KanbanCard(string Id, string Title, string Description);
 
-    private class KanbanColumn(string id, string name)
+    private sealed class KanbanColumn(string id, string name)
     {
-        public string Id { get; } = id;
+        public string Id   { get; } = id;
         public string Name { get; } = name;
-        public List<KanbanCard> Cards { get; set; } = [];
+        public List<KanbanCard> Cards { get; } = [];
     }
 
     private List<KanbanColumn> _columns =
     [
-        new("todo", "To Do") { Cards = [new("1","Design mockups","Create UI wireframes","todo"), new("2","Write specs","Document requirements","todo")] },
-        new("doing", "In Progress") { Cards = [new("3","Build API","REST endpoints","doing")] },
-        new("done", "Done") { Cards = [new("4","Project setup","Scaffold repository","done")] },
+        new("todo",  "To Do"),
+        new("doing", "In Progress"),
+        new("done",  "Done"),
     ];
 
-    private void HandleItemDropped(DropItemInfo<KanbanCard> info)
+    private KanbanCard? _draggedCard;
+
+    protected override void OnInitialized()
     {
-        if (info.Item is null) return;
+        _columns[0].Cards.AddRange(new[] { new KanbanCard("1","Design mockups","Wireframes"), new KanbanCard("2","Write specs","API surface") });
+        _columns[1].Cards.Add(new KanbanCard("3","Build API","REST endpoints"));
+        _columns[2].Cards.Add(new KanbanCard("4","Project setup","Scaffold repo"));
+    }
 
-        // Remove from source column
-        var src = _columns.First(c => c.Id == info.SourceZone);
-        src.Cards.Remove(info.Item);
+    private void HandleKanbanRemove(KanbanColumn col, (int OldIndex, int NewIndex) args)
+    {
+        if (args.OldIndex < 0 || args.OldIndex >= col.Cards.Count) { return; }
+        _draggedCard = col.Cards[args.OldIndex];
+        col.Cards.RemoveAt(args.OldIndex);
+    }
 
-        // Insert into target column at the correct index
-        var dst = _columns.First(c => c.Id == info.TargetZone);
-        var updated = info.Item with { Column = info.TargetZone };
-        var idx = Math.Clamp(info.TargetIndex, 0, dst.Cards.Count);
-        dst.Cards.Insert(idx, updated);
+    private void HandleKanbanAdd(KanbanColumn col, (int OldIndex, int NewIndex) args)
+    {
+        if (_draggedCard is null) { return; }
+        col.Cards.Insert(Math.Clamp(args.NewIndex, 0, col.Cards.Count), _draggedCard);
+        _draggedCard = null;
+    }
+
+    private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
+    {
+        var (oldIndex, newIndex) = args;
+        if (oldIndex < 0 || oldIndex >= list.Count) { return; }
+        var item = list[oldIndex];
+        list.RemoveAt(oldIndex);
+        if (newIndex < list.Count) { list.Insert(newIndex, item); }
+        else { list.Add(item); }
     }
 }

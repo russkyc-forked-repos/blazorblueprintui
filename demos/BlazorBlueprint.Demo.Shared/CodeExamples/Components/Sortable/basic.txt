@@ -1,15 +1,15 @@
-@* Standalone sortable list – handles reorder internally *@
-<BbSortable T="TaskItem"
+@* Standalone sortable list – drag to reorder *@
+<BbDragDrop TItem="TaskItem"
             Items="_items"
-            ZoneIdentifier="tasks"
-            OnItemDropped="HandleReorder">
+            OnUpdate="@(args => SortList(_items, args))"
+            Class="flex flex-col gap-2">
     <ItemTemplate Context="item">
-        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm">
-            <span class="text-muted-foreground cursor-grab">⠿</span>
+        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm select-none cursor-grab active:cursor-grabbing">
+            <span class="text-muted-foreground" aria-hidden="true">⠿</span>
             <span class="text-sm font-medium">@item.Title</span>
         </div>
     </ItemTemplate>
-</BbSortable>
+</BbDragDrop>
 
 @code {
     private record TaskItem(string Title);
@@ -22,11 +22,13 @@
         new("Publish package"),
     ];
 
-    private void HandleReorder(DropItemInfo<TaskItem> info)
+    private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
     {
-        if (info.Item is null) return;
-        _items.Remove(info.Item);
-        var idx = Math.Clamp(info.TargetIndex, 0, _items.Count);
-        _items.Insert(idx, info.Item);
+        var (oldIndex, newIndex) = args;
+        if (oldIndex < 0 || oldIndex >= list.Count) { return; }
+        var item = list[oldIndex];
+        list.RemoveAt(oldIndex);
+        if (newIndex < list.Count) { list.Insert(newIndex, item); }
+        else { list.Add(item); }
     }
 }

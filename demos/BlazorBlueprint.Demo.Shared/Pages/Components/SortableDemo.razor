@@ -9,7 +9,7 @@
             <h1 class="text-4xl font-bold tracking-tight">DragDrop</h1>
             <p class="text-xl text-muted-foreground">
                 Drag-and-drop sortable list powered by SortableJS. Supports in-list reordering,
-                cross-list transfers, handles, clone mode, and filtering — all in one component.
+                cross-list transfers, handles, clone mode, grid layouts, and filtering — all in one component.
             </p>
         </div>
     </div>
@@ -37,7 +37,29 @@
         </BbDragDrop>
     </div>
 
-    @* ── 2. Drag handle ────────────────────────────────────────────────── *@
+    @* ── 2. Grid layout ────────────────────────────────────────────────── *@
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Grid Layout</h2>
+            <p class="text-sm text-muted-foreground">
+                Pass a CSS grid class via <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code>.
+                SortableJS works the same regardless of the container's layout.
+            </p>
+        </div>
+
+        <BbDragDrop TItem="GridItem"
+                    Items="_gridItems"
+                    OnUpdate="@(args => SortList(_gridItems, args))"
+                    Class="grid grid-cols-4 gap-3">
+            <ItemTemplate Context="item">
+                <div class="flex items-center justify-center rounded-lg border bg-card shadow-sm select-none cursor-grab active:cursor-grabbing aspect-square text-3xl hover:shadow-md transition-shadow">
+                    @item.Emoji
+                </div>
+            </ItemTemplate>
+        </BbDragDrop>
+    </div>
+
+    @* ── 3. Drag handle ────────────────────────────────────────────────── *@
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Drag Handle</h2>
@@ -63,15 +85,15 @@
         </BbDragDrop>
     </div>
 
-    @* ── 3. Kanban board (cross-list) ──────────────────────────────────── *@
+    @* ── 4. Kanban board (cross-list) ──────────────────────────────────── *@
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Kanban Board</h2>
             <p class="text-sm text-muted-foreground">
                 Multiple lists share the same <code class="text-xs bg-muted px-1 py-0.5 rounded">Group</code>.
-                Handle <code class="text-xs bg-muted px-1 py-0.5 rounded">OnUpdate</code> for same-column reorder,
-                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code> to remove from source, and
-                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> to insert into target.
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnUpdate</code> handles same-column reorder,
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code> removes the card from the source column,
+                and <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> inserts the stored card into the target column.
             </p>
         </div>
 
@@ -91,7 +113,7 @@
                                 Items="column.Cards"
                                 Group="kanban"
                                 OnUpdate="@(args => SortList(column.Cards, args))"
-                                OnRemove="@(args => column.Cards.RemoveAt(args.OldIndex))"
+                                OnRemove="@(args => HandleKanbanRemove(column, args))"
                                 OnAdd="@(args => HandleKanbanAdd(column, args))"
                                 Class="flex flex-col gap-2 flex-1 min-h-[3rem]">
                         <ItemTemplate Context="card">
@@ -108,13 +130,14 @@
         </div>
     </div>
 
-    @* ── 4. Clone mode ─────────────────────────────────────────────────── *@
+    @* ── 5. Clone mode ─────────────────────────────────────────────────── *@
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Clone Mode</h2>
             <p class="text-sm text-muted-foreground">
                 Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Pull="clone"</code> on the source list.
-                Dragging to the target duplicates the item — the original stays in place.
+                Dragging to the target copies the item — the original stays in place.
+                Handle <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> on the target to insert the copy.
             </p>
         </div>
 
@@ -142,7 +165,7 @@
                             Items="_cloneTarget"
                             Group="clone-group"
                             OnUpdate="@(args => SortList(_cloneTarget, args))"
-                            OnAdd="@(args => _cloneTarget.Insert(Math.Clamp(args.NewIndex, 0, _cloneTarget.Count), _cloneSource[args.OldIndex]))"
+                            OnAdd="HandleCloneAdd"
                             Class="flex flex-col gap-2 min-h-[60px] rounded-lg border-2 border-dashed border-muted-foreground/30 p-2">
                     <ItemTemplate Context="item">
                         <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
@@ -162,13 +185,13 @@
         </div>
     </div>
 
-    @* ── 5. Filtering (non-draggable items) ───────────────────────────── *@
+    @* ── 6. Filtering (non-draggable items) ───────────────────────────── *@
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Filtered / Locked Items</h2>
             <p class="text-sm text-muted-foreground">
                 Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Filter</code> to a CSS class.
-                Elements with that class cannot be dragged.
+                Items carrying that class cannot be dragged.
             </p>
         </div>
 
@@ -219,7 +242,7 @@
             </ApiParameter>
             <ApiParameter Name="Pull" Type="string?" Default="null">
                 <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code> = move,
-                <code class="text-xs bg-muted px-1 py-0.5 rounded">"clone"</code> = clone items on cross-list drag.
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">"clone"</code> = copy items on cross-list drag.
             </ApiParameter>
             <ApiParameter Name="Put" Type="bool" Default="true">
                 Whether to accept drops from other lists in the same group.
@@ -240,16 +263,17 @@
                 Use SortableJS polyfill instead of native HTML5 drag events.
             </ApiParameter>
             <ApiParameter Name="OnUpdate" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
-                Fired when an item is reordered within this list. Reorder your list in this handler.
+                Fired when an item is reordered within this list. Reorder <c>Items</c> in this handler.
             </ApiParameter>
             <ApiParameter Name="OnRemove" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
-                Fired when an item is dragged out to another group list. Remove item at OldIndex.
+                Fired when an item is dragged out to another group list. Remove the item at OldIndex.
             </ApiParameter>
             <ApiParameter Name="OnAdd" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
-                Fired when an item from another group list is dropped here. Insert item at NewIndex.
+                Fired when an item from another group list is dropped here. Insert the item at NewIndex.
+                OldIndex is the position of the item in the source list.
             </ApiParameter>
             <ApiParameter Name="Class" Type="string?">
-                Additional CSS classes for the list container.
+                Additional CSS classes for the list container (e.g. flex/grid layout classes).
             </ApiParameter>
         </ApiReference>
     </section>
@@ -266,6 +290,16 @@
         new("Write documentation"),
         new("Add unit tests"),
         new("Publish to NuGet"),
+    ];
+
+    // ── Grid layout ───────────────────────────────────────────────────────
+    private record GridItem(string Emoji);
+
+    private List<GridItem> _gridItems =
+    [
+        new("🌅"), new("🏔️"), new("🌊"), new("🌲"),
+        new("🌺"), new("🦋"), new("🌙"), new("⭐"),
+        new("🌈"), new("🍀"), new("🔥"), new("❄️"),
     ];
 
     // ── Handle demo ───────────────────────────────────────────────────────
@@ -287,17 +321,6 @@
         public List<KanbanCard> Cards { get; } = [];
     }
 
-    // Flat list of all kanban cards shared across columns
-    private List<KanbanCard> _allCards =
-    [
-        new("k1", "Design mockups",    "Create UI wireframes for all components"),
-        new("k2", "Write specs",       "Document the API surface"),
-        new("k3", "Set up CI/CD",      "GitHub Actions pipeline"),
-        new("k4", "Build core API",    "REST endpoints and authentication"),
-        new("k5", "Component library", "Blazor Blueprint integration"),
-        new("k6", "Project scaffold",  "Repository and solution setup"),
-    ];
-
     private List<KanbanColumn> _kanbanColumns =
     [
         new("todo",  "To Do"),
@@ -305,24 +328,44 @@
         new("done",  "Done"),
     ];
 
+    // Holds the card being dragged across columns so OnAdd can insert the right item.
+    // Set by HandleKanbanRemove (source), consumed by HandleKanbanAdd (target).
+    private KanbanCard? _draggedCard;
+
     protected override void OnInitialized()
     {
-        _kanbanColumns[0].Cards.AddRange(_allCards.Take(3));
-        _kanbanColumns[1].Cards.AddRange(_allCards.Skip(3).Take(2));
-        _kanbanColumns[2].Cards.AddRange(_allCards.Skip(5));
+        _kanbanColumns[0].Cards.AddRange(new[]
+        {
+            new KanbanCard("k1", "Design mockups",   "Create UI wireframes for all components"),
+            new KanbanCard("k2", "Write specs",      "Document the API surface"),
+            new KanbanCard("k3", "Set up CI/CD",     "GitHub Actions pipeline"),
+        });
+        _kanbanColumns[1].Cards.AddRange(new[]
+        {
+            new KanbanCard("k4", "Build core API",    "REST endpoints and authentication"),
+            new KanbanCard("k5", "Component library", "Blazor Blueprint integration"),
+        });
+        _kanbanColumns[2].Cards.AddRange(new[]
+        {
+            new KanbanCard("k6", "Project scaffold",  "Repository and solution setup"),
+        });
     }
 
-    private void HandleKanbanAdd(KanbanColumn targetCol, (int OldIndex, int NewIndex) args)
+    // onRemove fires on the source BEFORE onAdd fires on the target,
+    // so _draggedCard is always set when HandleKanbanAdd runs.
+    private void HandleKanbanRemove(KanbanColumn col, (int OldIndex, int NewIndex) args)
     {
-        // Find the card that SortableJS moved (it was already physically moved in DOM).
-        // We need to find the source column and get the card at OldIndex.
-        // Since OnRemove already ran on the source and removed the card from that column's list,
-        // we search all cards for the one that's no longer in any column's list.
-        var allInColumns = _kanbanColumns.SelectMany(c => c.Cards).ToHashSet();
-        var missing = _allCards.FirstOrDefault(c => !allInColumns.Contains(c));
-        if (missing is null) { return; }
-        var idx = Math.Clamp(args.NewIndex, 0, targetCol.Cards.Count);
-        targetCol.Cards.Insert(idx, missing);
+        if (args.OldIndex < 0 || args.OldIndex >= col.Cards.Count) { return; }
+        _draggedCard = col.Cards[args.OldIndex];
+        col.Cards.RemoveAt(args.OldIndex);
+    }
+
+    private void HandleKanbanAdd(KanbanColumn col, (int OldIndex, int NewIndex) args)
+    {
+        if (_draggedCard is null) { return; }
+        var idx = Math.Clamp(args.NewIndex, 0, col.Cards.Count);
+        col.Cards.Insert(idx, _draggedCard);
+        _draggedCard = null;
     }
 
     // ── Clone mode ────────────────────────────────────────────────────────
@@ -332,6 +375,16 @@
     ];
 
     private List<BasicItem> _cloneTarget = [];
+
+    // OnAdd on the target: OldIndex is the source item's position in _cloneSource.
+    // The source list is unchanged in clone mode, so the index is always valid.
+    private void HandleCloneAdd((int OldIndex, int NewIndex) args)
+    {
+        if (args.OldIndex < 0 || args.OldIndex >= _cloneSource.Count) { return; }
+        var copy = _cloneSource[args.OldIndex];
+        var idx  = Math.Clamp(args.NewIndex, 0, _cloneTarget.Count);
+        _cloneTarget.Insert(idx, copy);
+    }
 
     // ── Locked items ──────────────────────────────────────────────────────
     private record LockedItem(string Title, bool Locked);
