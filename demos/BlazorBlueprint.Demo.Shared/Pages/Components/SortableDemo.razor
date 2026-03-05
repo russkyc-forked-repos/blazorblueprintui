@@ -150,7 +150,7 @@
         <BbSortable TItem="ColorCard"
                     Items="@_gridCards"
                     Layout="SortableLayout.Grid"
-                    AriaLabel="Sortable colour-card grid"
+                    AriaLabel="Sortable card grid"
                     OnUpdate="@((args) => MoveWithin(_gridCards, args))">
             <ItemTemplate Context="card">
                 @* Wrap BbCard in a <div> — Sortable.js needs a single DOM root per item. *@
