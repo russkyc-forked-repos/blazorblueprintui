@@ -1,23 +1,28 @@
-@* Grid sortable — pass any CSS grid class via the Class parameter *@
+@* Grid sortable — pass any CSS grid or flex class via the Class parameter *@
 <BbDragDrop TItem="GridItem"
             Items="_photos"
+            AriaLabel="Sortable photo grid"
             OnUpdate="@(args => SortList(_photos, args))"
             Class="grid grid-cols-4 gap-3">
     <ItemTemplate Context="photo">
-        <div class="flex items-center justify-center rounded-lg border bg-card shadow-sm select-none cursor-grab active:cursor-grabbing aspect-square text-3xl hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-center rounded-lg border bg-card shadow-sm
+                    select-none cursor-grab active:cursor-grabbing aspect-square text-3xl
+                    hover:shadow-md transition-shadow"
+             role="img"
+             aria-label="@photo.Label">
             @photo.Emoji
         </div>
     </ItemTemplate>
 </BbDragDrop>
 
 @code {
-    private record GridItem(string Emoji);
+    private record GridItem(string Emoji, string Label);
 
     private List<GridItem> _photos =
     [
-        new("🌅"), new("🏔️"), new("🌊"), new("🌲"),
-        new("🌺"), new("🦋"), new("🌙"), new("⭐"),
-        new("🌈"), new("🍀"), new("🔥"), new("❄️"),
+        new("🌅", "Sunrise"),  new("🏔️", "Mountain"), new("🌊", "Ocean"),  new("🌲", "Forest"),
+        new("🌺", "Flower"),   new("🦋", "Butterfly"), new("🌙", "Moon"),   new("⭐", "Star"),
+        new("🌈", "Rainbow"),  new("🍀", "Clover"),    new("🔥", "Fire"),   new("❄️", "Snowflake"),
     ];
 
     private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)

@@ -1,13 +1,18 @@
-@* Standalone sortable list – drag to reorder *@
+@* Standalone sortable list — drag items to reorder *@
 <BbDragDrop TItem="TaskItem"
             Items="_items"
+            AriaLabel="Sortable task list"
             OnUpdate="@(args => SortList(_items, args))"
             Class="flex flex-col gap-2">
     <ItemTemplate Context="item">
-        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm select-none cursor-grab active:cursor-grabbing">
-            <span class="text-muted-foreground" aria-hidden="true">⠿</span>
-            <span class="text-sm font-medium">@item.Title</span>
-        </div>
+        <BbItem Variant="ItemVariant.Outline" Class="cursor-grab active:cursor-grabbing select-none">
+            <BbItemMedia>
+                <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+            </BbItemMedia>
+            <BbItemContent>
+                <BbItemTitle>@item.Title</BbItemTitle>
+            </BbItemContent>
+        </BbItem>
     </ItemTemplate>
 </BbDragDrop>
 

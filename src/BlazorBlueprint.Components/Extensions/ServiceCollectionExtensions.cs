@@ -25,6 +25,10 @@ public static class ServiceCollectionExtensions
         // Register DialogService as scoped for programmatic confirm dialogs
         services.AddScoped<DialogService>();
 
+        // Register DragDropState as scoped so each Blazor circuit (Server) or app
+        // instance (WASM) has its own isolated drag-and-drop session state.
+        services.AddScoped<DragDropState>();
+
         return services;
     }
 }

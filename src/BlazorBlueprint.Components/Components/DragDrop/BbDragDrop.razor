@@ -1,14 +1,52 @@
 @namespace BlazorBlueprint.Components
 @typeparam TItem where TItem : notnull
 
-<div id="@Id" class="@CssClass" @ref="_element">
-    @foreach (var item in Items)
+<div class="@CssClass"
+     role="list"
+     aria-label="@AriaLabel"
+     @ref="_container"
+     @ondragover:preventDefault
+     @ondragover="HandleContainerDragOver"
+     @ondrop:preventDefault
+     @ondrop="HandleContainerDrop"
+     @ondragleave="HandleContainerDragLeave">
+
+    @for (var i = 0; i < Items.Count; i++)
     {
-        <div @key="item">
+        var index = i;
+        var item  = Items[i];
+        var draggable = IsDraggable(item);
+        var isBeingDragged = _localDragIndex == index && _localDragItem is not null;
+
+        <div @key="item"
+             role="listitem"
+             draggable="@(draggable ? "true" : "false")"
+             aria-grabbed="@(isBeingDragged ? "true" : null)"
+             aria-roledescription="@(draggable ? "Reorderable item" : null)"
+             class="@GetWrapperClass(item, index)"
+             @ondragstart="(e) => HandleDragStart(e, item, index)"
+             @ondragover:preventDefault
+             @ondragover="() => HandleItemDragOver(index)"
+             @ondrop:preventDefault
+             @ondrop="() => HandleItemDrop(index)"
+             @ondragend="HandleDragEnd"
+             @ondragleave:stopPropagation>
             @if (ItemTemplate is not null)
             {
                 @ItemTemplate(item)
             }
+        </div>
+    }
+
+    @* Empty-list drop target — visible when dragging over an empty container *@
+    @if (ShouldShowEmptyHint)
+    {
+        <div class="bb-drag-empty-hint"
+             role="listitem"
+             aria-label="Drop here"
+             @ondrop:preventDefault
+             @ondrop="() => HandleItemDrop(0)">
+            Drop here
         </div>
     }
 </div>

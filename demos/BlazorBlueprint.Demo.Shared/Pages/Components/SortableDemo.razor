@@ -8,92 +8,124 @@
         <div class="space-y-3">
             <h1 class="text-4xl font-bold tracking-tight">DragDrop</h1>
             <p class="text-xl text-muted-foreground">
-                Drag-and-drop sortable list powered by SortableJS. Supports in-list reordering,
-                cross-list transfers, handles, clone mode, grid layouts, and filtering — all in one component.
+                Drag-and-drop sortable list built with the HTML5 Drag and Drop API and Blazor — no external
+                JS library. Supports in-list reordering, cross-list transfers, handles, clone mode, grid
+                layouts, and disabled items.
             </p>
         </div>
     </div>
 
-    @* ── 1. Basic reorder ──────────────────────────────────────────────── *@
+    <!-- Basic Reorder -->
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Basic Reorder</h2>
             <p class="text-sm text-muted-foreground">
-                Drag items to reorder. Handle <code class="text-xs bg-muted px-1 py-0.5 rounded">OnUpdate</code>
+                Drag items to reorder. Handle
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnUpdate</code>
                 to apply the new order to your list.
             </p>
         </div>
 
         <BbDragDrop TItem="BasicItem"
                     Items="_basicItems"
+                    AriaLabel="Sortable task list"
                     OnUpdate="@(args => SortList(_basicItems, args))"
                     Class="flex flex-col gap-2">
             <ItemTemplate Context="item">
-                <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm select-none cursor-grab active:cursor-grabbing">
-                    <span class="text-muted-foreground text-lg" aria-hidden="true">⠿</span>
-                    <span class="text-sm font-medium">@item.Title</span>
-                </div>
+                <BbItem Variant="ItemVariant.Outline" Class="cursor-grab active:cursor-grabbing select-none">
+                    <BbItemMedia>
+                        <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                    </BbItemMedia>
+                    <BbItemContent>
+                        <BbItemTitle>@item.Title</BbItemTitle>
+                    </BbItemContent>
+                </BbItem>
             </ItemTemplate>
         </BbDragDrop>
+
+        <CodeBlock Source="Components/Sortable/basic.txt" />
     </div>
 
-    @* ── 2. Grid layout ────────────────────────────────────────────────── *@
+    <!-- Grid Layout -->
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Grid Layout</h2>
             <p class="text-sm text-muted-foreground">
-                Pass a CSS grid class via <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code>.
-                SortableJS works the same regardless of the container's layout.
+                Pass any CSS layout class via
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code>.
+                The component works identically with flex, grid, or any other layout.
             </p>
         </div>
 
         <BbDragDrop TItem="GridItem"
                     Items="_gridItems"
+                    AriaLabel="Sortable photo grid"
                     OnUpdate="@(args => SortList(_gridItems, args))"
                     Class="grid grid-cols-4 gap-3">
             <ItemTemplate Context="item">
-                <div class="flex items-center justify-center rounded-lg border bg-card shadow-sm select-none cursor-grab active:cursor-grabbing aspect-square text-3xl hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-center rounded-lg border bg-card shadow-sm
+                            select-none cursor-grab active:cursor-grabbing aspect-square text-3xl
+                            hover:shadow-md transition-shadow"
+                     role="img"
+                     aria-label="@item.Label">
                     @item.Emoji
                 </div>
             </ItemTemplate>
         </BbDragDrop>
+
+        <CodeBlock Source="Components/Sortable/grid.txt" />
     </div>
 
-    @* ── 3. Drag handle ────────────────────────────────────────────────── *@
+    <!-- Drag Handle -->
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Drag Handle</h2>
             <p class="text-sm text-muted-foreground">
-                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Handle</code> to a CSS class inside
-                your item template. Only that element will initiate a drag.
+                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Handle</code> to a CSS class
+                inside your template. Only dragging that element initiates a drag; clicking text or
+                buttons elsewhere has no effect.
             </p>
         </div>
 
         <BbDragDrop TItem="BasicItem"
                     Items="_handleItems"
                     Handle="bb-drag-handle"
+                    AriaLabel="Sortable list with drag handles"
                     OnUpdate="@(args => SortList(_handleItems, args))"
                     Class="flex flex-col gap-2">
             <ItemTemplate Context="item">
-                <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-card-foreground shadow-sm select-none">
-                    <span class="bb-drag-handle text-muted-foreground text-lg cursor-grab hover:text-foreground transition-colors"
-                          title="Drag handle" aria-hidden="true">⠿</span>
-                    <span class="text-sm font-medium flex-1">@item.Title</span>
-                    <BbBadge Variant="BadgeVariant.Secondary" Class="text-xs">handle only</BbBadge>
-                </div>
+                <BbItem Variant="ItemVariant.Outline" Class="select-none">
+                    <BbItemMedia>
+                        <button class="bb-drag-handle cursor-grab text-muted-foreground hover:text-foreground
+                                       transition-colors focus-visible:outline-none focus-visible:ring-2
+                                       focus-visible:ring-ring rounded"
+                                aria-label="Drag to reorder @item.Title"
+                                type="button">
+                            <LucideIcon Name="grip-vertical" Size="16" aria-hidden="true" />
+                        </button>
+                    </BbItemMedia>
+                    <BbItemContent>
+                        <BbItemTitle>@item.Title</BbItemTitle>
+                    </BbItemContent>
+                    <BbItemActions>
+                        <BbBadge Variant="BadgeVariant.Secondary">handle only</BbBadge>
+                    </BbItemActions>
+                </BbItem>
             </ItemTemplate>
         </BbDragDrop>
+
+        <CodeBlock Source="Components/Sortable/handle.txt" />
     </div>
 
-    @* ── 4. Kanban board (cross-list) ──────────────────────────────────── *@
+    <!-- Kanban Board -->
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Kanban Board</h2>
             <p class="text-sm text-muted-foreground">
-                Multiple lists share the same <code class="text-xs bg-muted px-1 py-0.5 rounded">Group</code>.
-                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnUpdate</code> handles same-column reorder,
-                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code> removes the card from the source column,
-                and <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> inserts the stored card into the target column.
+                Multiple lists share the same
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Group</code>.
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> receives the dropped
+                item directly — no separate tracking variable needed.
             </p>
         </div>
 
@@ -101,126 +133,213 @@
             @foreach (var col in _kanbanColumns)
             {
                 var column = col;
-                <div class="flex flex-col gap-2 rounded-xl border bg-muted/30 p-3 min-h-[200px]">
-                    <div class="flex items-center justify-between px-1 pb-1">
-                        <h3 class="text-sm font-semibold">@column.Name</h3>
-                        <span class="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
-                            @column.Cards.Count
-                        </span>
-                    </div>
-
-                    <BbDragDrop TItem="KanbanCard"
-                                Items="column.Cards"
-                                Group="kanban"
-                                OnUpdate="@(args => SortList(column.Cards, args))"
-                                OnRemove="@(args => HandleKanbanRemove(column, args))"
-                                OnAdd="@(args => HandleKanbanAdd(column, args))"
-                                Class="flex flex-col gap-2 flex-1 min-h-[3rem]">
-                        <ItemTemplate Context="card">
-                            <BbCard Class="cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow duration-200">
-                                <BbCardContent Class="p-3 space-y-1">
-                                    <p class="text-sm font-medium">@card.Title</p>
-                                    <p class="text-xs text-muted-foreground">@card.Description</p>
-                                </BbCardContent>
-                            </BbCard>
-                        </ItemTemplate>
-                    </BbDragDrop>
-                </div>
+                <BbCard Class="flex flex-col min-h-[220px]">
+                    <BbCardHeader Class="pb-2">
+                        <div class="flex items-center justify-between">
+                            <BbCardTitle Class="text-sm font-semibold">@column.Name</BbCardTitle>
+                            <BbBadge Variant="BadgeVariant.Secondary">@column.Cards.Count</BbBadge>
+                        </div>
+                    </BbCardHeader>
+                    <BbCardContent Class="flex-1 pt-0 px-3 pb-3">
+                        <BbDragDrop TItem="KanbanCard"
+                                    Items="column.Cards"
+                                    Group="kanban"
+                                    AriaLabel="@($"{column.Name} column")"
+                                    OnUpdate="@(args => SortList(column.Cards, args))"
+                                    OnRemove="@(args => column.Cards.RemoveAt(args.OldIndex))"
+                                    OnAdd="@(args => column.Cards.Insert(Math.Clamp(args.NewIndex, 0, column.Cards.Count), args.Item))"
+                                    Class="flex flex-col gap-2 min-h-[3rem]">
+                            <ItemTemplate Context="card">
+                                <BbCard Class="cursor-grab active:cursor-grabbing shadow-sm
+                                               hover:shadow-md transition-shadow duration-200">
+                                    <BbCardContent Class="p-3">
+                                        <p class="text-sm font-medium">@card.Title</p>
+                                        <p class="text-xs text-muted-foreground mt-1">@card.Description</p>
+                                    </BbCardContent>
+                                </BbCard>
+                            </ItemTemplate>
+                        </BbDragDrop>
+                    </BbCardContent>
+                </BbCard>
             }
         </div>
+
+        <CodeBlock Source="Components/Sortable/kanban.txt" />
     </div>
 
-    @* ── 5. Clone mode ─────────────────────────────────────────────────── *@
+    <!-- Clone Mode -->
     <div class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">Clone Mode</h2>
             <p class="text-sm text-muted-foreground">
-                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Pull="clone"</code> on the source list.
-                Dragging to the target copies the item — the original stays in place.
-                Handle <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> on the target to insert the copy.
+                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Pull="clone"</code> on the
+                source list. Dragging to the target copies the item — the original stays in place.
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code> is never fired
+                in clone mode.
             </p>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
-                <h3 class="text-sm font-semibold text-muted-foreground">Source (items stay)</h3>
+                <p class="text-sm font-medium text-muted-foreground">
+                    <LucideIcon Name="pin" Size="14" Class="inline-block mr-1" aria-hidden="true" />
+                    Source — items stay
+                </p>
                 <BbDragDrop TItem="BasicItem"
                             Items="_cloneSource"
                             Group="clone-group"
                             Pull="clone"
-                            Sort="true"
+                            AriaLabel="Clone source list"
                             OnUpdate="@(args => SortList(_cloneSource, args))"
                             Class="flex flex-col gap-2">
                     <ItemTemplate Context="item">
-                        <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
-                            <span aria-hidden="true">📌</span>
-                            <span>@item.Title</span>
-                        </div>
+                        <BbItem Variant="ItemVariant.Outline" Class="cursor-grab active:cursor-grabbing select-none">
+                            <BbItemMedia>
+                                <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                            </BbItemMedia>
+                            <BbItemContent>
+                                <BbItemTitle>@item.Title</BbItemTitle>
+                            </BbItemContent>
+                        </BbItem>
                     </ItemTemplate>
                 </BbDragDrop>
             </div>
             <div class="space-y-2">
-                <h3 class="text-sm font-semibold text-muted-foreground">Target (receives copies)</h3>
+                <p class="text-sm font-medium text-muted-foreground">
+                    <LucideIcon Name="clipboard-list" Size="14" Class="inline-block mr-1" aria-hidden="true" />
+                    Target — receives copies
+                </p>
                 <BbDragDrop TItem="BasicItem"
                             Items="_cloneTarget"
                             Group="clone-group"
+                            AriaLabel="Clone target list"
                             OnUpdate="@(args => SortList(_cloneTarget, args))"
-                            OnAdd="HandleCloneAdd"
-                            Class="flex flex-col gap-2 min-h-[60px] rounded-lg border-2 border-dashed border-muted-foreground/30 p-2">
+                            OnAdd="@(args => _cloneTarget.Insert(Math.Clamp(args.NewIndex, 0, _cloneTarget.Count), args.Item))"
+                            Class="flex flex-col gap-2 min-h-[60px] rounded-lg border-2 border-dashed
+                                   border-muted-foreground/30 p-2">
                     <ItemTemplate Context="item">
-                        <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
-                            <span aria-hidden="true">📎</span>
-                            <span>@item.Title</span>
-                        </div>
+                        <BbItem Variant="ItemVariant.Outline" Class="cursor-grab active:cursor-grabbing select-none">
+                            <BbItemMedia>
+                                <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                            </BbItemMedia>
+                            <BbItemContent>
+                                <BbItemTitle>@item.Title</BbItemTitle>
+                            </BbItemContent>
+                        </BbItem>
                     </ItemTemplate>
                 </BbDragDrop>
                 @if (_cloneTarget.Count > 0)
                 {
                     <BbButton Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
-                              OnClick="@(() => _cloneTarget.Clear())">
+                              OnClick="@(() => _cloneTarget.Clear())"
+                              AriaLabel="Clear cloned items">
+                        <LucideIcon Name="trash-2" Size="14" Class="mr-1" aria-hidden="true" />
                         Clear
                     </BbButton>
                 }
             </div>
         </div>
+
+        <CodeBlock Source="Components/Sortable/clone.txt" />
     </div>
 
-    @* ── 6. Filtering (non-draggable items) ───────────────────────────── *@
+    <!-- Disabled Items -->
     <div class="space-y-4">
         <div class="space-y-2">
-            <h2 class="text-2xl font-semibold">Filtered / Locked Items</h2>
+            <h2 class="text-2xl font-semibold">Disabled Items</h2>
             <p class="text-sm text-muted-foreground">
-                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Filter</code> to a CSS class.
-                Items carrying that class cannot be dragged.
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ItemDisabled</code> to pass a
+                predicate. Items for which the predicate returns <code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>
+                are rendered with <code class="text-xs bg-muted px-1 py-0.5 rounded">draggable="false"</code>
+                and cannot be picked up.
             </p>
         </div>
 
         <BbDragDrop TItem="LockedItem"
                     Items="_lockedItems"
-                    Filter="bb-item-locked"
+                    ItemDisabled="@(item => item.Locked)"
+                    AriaLabel="Sortable preferences list"
                     OnUpdate="@(args => SortList(_lockedItems, args))"
                     Class="flex flex-col gap-2">
             <ItemTemplate Context="item">
-                <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-sm select-none @(item.Locked ? "bb-item-locked opacity-60" : "cursor-grab")">
+                <BbItem Variant="ItemVariant.Outline"
+                        Class="@(item.Locked ? "opacity-60 cursor-not-allowed select-none" : "cursor-grab active:cursor-grabbing select-none")">
+                    <BbItemMedia>
+                        @if (item.Locked)
+                        {
+                            <LucideIcon Name="lock" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                        }
+                        else
+                        {
+                            <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                        }
+                    </BbItemMedia>
+                    <BbItemContent>
+                        <BbItemTitle>@item.Title</BbItemTitle>
+                    </BbItemContent>
                     @if (item.Locked)
                     {
-                        <span aria-label="Locked">🔒</span>
+                        <BbItemActions>
+                            <BbBadge Variant="BadgeVariant.Secondary">
+                                <LucideIcon Name="lock" Size="10" Class="mr-1" aria-hidden="true" />
+                                Locked
+                            </BbBadge>
+                        </BbItemActions>
                     }
-                    else
-                    {
-                        <span class="text-muted-foreground" aria-hidden="true">⠿</span>
-                    }
-                    <span>@item.Title</span>
-                    @if (item.Locked)
-                    {
-                        <BbBadge Variant="BadgeVariant.Secondary" Class="ml-auto text-xs">Locked</BbBadge>
-                    }
-                </div>
+                </BbItem>
             </ItemTemplate>
         </BbDragDrop>
+
+        <CodeBlock Source="Components/Sortable/disabled.txt" />
     </div>
 
-    @* ── API Reference ──────────────────────────────────────────────────── *@
+    <!-- Accessibility -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                Container renders with <code class="text-xs bg-muted px-1 py-0.5 rounded">role="list"</code>
+                and an optional <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> via the
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code> parameter.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                Each item wrapper renders with <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listitem"</code>.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                Draggable items carry <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-roledescription="Reorderable item"</code>
+                so screen readers announce them as interactive.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                The item being actively dragged receives
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-grabbed="true"</code>, allowing
+                assistive technology to track the in-progress drag.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                Disabled items (predicate returns <code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>)
+                have <code class="text-xs bg-muted px-1 py-0.5 rounded">draggable="false"</code> and no
+                drag-related ARIA attributes, matching the expected non-interactive state.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                When using a drag handle, wrap the handle element in a focusable
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;button&gt;</code> with a descriptive
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> (e.g.
+                <em>"Drag to reorder Task name"</em>) so keyboard and screen-reader users can identify it.
+            </AccessibilityItem>
+            <AccessibilityItem>
+                Provide meaningful text in the empty-list drop zone — the built-in hint reads
+                <em>"Drop here"</em> and has <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="Drop here"</code>.
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="Move focus between drag handles">
+                <BbKbd>Tab</BbKbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="Activate the focused drag handle button">
+                <BbKbd>Enter</BbKbd> / <BbKbd>Space</BbKbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
     <section class="space-y-4">
         <div class="space-y-2">
             <h2 class="text-2xl font-semibold">API Reference</h2>
@@ -228,52 +347,47 @@
         </div>
 
         <ApiReference ComponentName="BbDragDrop&lt;TItem&gt;">
-            <ApiParameter Name="Id" Type="string" Default="(auto GUID)">
-                HTML <code class="text-xs bg-muted px-1 py-0.5 rounded">id</code> attribute on the list element.
-            </ApiParameter>
             <ApiParameter Name="Items" Type="IList&lt;TItem&gt;">
-                The list of items to render. Mutate this list in your callbacks to persist changes.
+                The list of items to render. Mutate in your callbacks to persist changes.
             </ApiParameter>
             <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;TItem&gt;?">
                 Template for each item.
             </ApiParameter>
             <ApiParameter Name="Group" Type="string?" Default="null">
-                SortableJS group name. Lists with the same group can exchange items.
+                Group name. Lists sharing a group can exchange items.
             </ApiParameter>
             <ApiParameter Name="Pull" Type="string?" Default="null">
                 <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code> = move,
                 <code class="text-xs bg-muted px-1 py-0.5 rounded">"clone"</code> = copy items on cross-list drag.
             </ApiParameter>
             <ApiParameter Name="Put" Type="bool" Default="true">
-                Whether to accept drops from other lists in the same group.
+                Whether this list accepts drops from other lists in the same group.
             </ApiParameter>
             <ApiParameter Name="Sort" Type="bool" Default="true">
-                Whether items within this list can be reordered.
+                Whether items can be reordered within this list.
             </ApiParameter>
             <ApiParameter Name="Handle" Type="string?" Default="null">
-                CSS class of the drag-handle element inside each item.
+                CSS class of the drag-handle element inside each item template.
             </ApiParameter>
-            <ApiParameter Name="Filter" Type="string?" Default="null">
-                CSS class that marks items as non-draggable.
+            <ApiParameter Name="ItemDisabled" Type="Func&lt;TItem, bool&gt;?" Default="null">
+                Predicate that returns <c>true</c> for items that cannot be dragged.
             </ApiParameter>
-            <ApiParameter Name="Animation" Type="int" Default="150">
-                Drag animation duration in milliseconds. Set to 0 to disable.
-            </ApiParameter>
-            <ApiParameter Name="ForceFallback" Type="bool" Default="false">
-                Use SortableJS polyfill instead of native HTML5 drag events.
+            <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                Accessible label applied to the container via <c>aria-label</c>.
             </ApiParameter>
             <ApiParameter Name="OnUpdate" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
-                Fired when an item is reordered within this list. Reorder <c>Items</c> in this handler.
+                Fired on in-list reorder. Call <c>SortList(Items, args)</c> here.
             </ApiParameter>
             <ApiParameter Name="OnRemove" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
-                Fired when an item is dragged out to another group list. Remove the item at OldIndex.
+                Fired when an item leaves this list (not fired in clone mode). Remove <c>Items[OldIndex]</c>.
             </ApiParameter>
-            <ApiParameter Name="OnAdd" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
-                Fired when an item from another group list is dropped here. Insert the item at NewIndex.
-                OldIndex is the position of the item in the source list.
+            <ApiParameter Name="OnAdd" Type="EventCallback&lt;(TItem Item, int OldIndex, int NewIndex)&gt;">
+                Fired when an item arrives from another list. <c>Item</c> is the dropped object —
+                insert it at <c>NewIndex</c>.
             </ApiParameter>
             <ApiParameter Name="Class" Type="string?">
-                Additional CSS classes for the list container (e.g. flex/grid layout classes).
+                CSS layout classes for the container (e.g. <c>"flex flex-col gap-2"</c> or
+                <c>"grid grid-cols-4 gap-3"</c>).
             </ApiParameter>
         </ApiReference>
     </section>
@@ -293,13 +407,13 @@
     ];
 
     // ── Grid layout ───────────────────────────────────────────────────────
-    private record GridItem(string Emoji);
+    private record GridItem(string Emoji, string Label);
 
     private List<GridItem> _gridItems =
     [
-        new("🌅"), new("🏔️"), new("🌊"), new("🌲"),
-        new("🌺"), new("🦋"), new("🌙"), new("⭐"),
-        new("🌈"), new("🍀"), new("🔥"), new("❄️"),
+        new("🌅", "Sunrise"),     new("🏔️", "Mountain"),  new("🌊", "Ocean"),  new("🌲", "Forest"),
+        new("🌺", "Flower"),      new("🦋", "Butterfly"),  new("🌙", "Moon"),   new("⭐", "Star"),
+        new("🌈", "Rainbow"),     new("🍀", "Clover"),     new("🔥", "Fire"),   new("❄️", "Snowflake"),
     ];
 
     // ── Handle demo ───────────────────────────────────────────────────────
@@ -307,7 +421,7 @@
     [
         new("Drag the grip icon only"),
         new("Clicking the text does nothing"),
-        new("Only the ⠿ icon initiates drag"),
+        new("Only the handle initiates a drag"),
         new("Try clicking the badge vs the handle"),
     ];
 
@@ -328,17 +442,13 @@
         new("done",  "Done"),
     ];
 
-    // Holds the card being dragged across columns so OnAdd can insert the right item.
-    // Set by HandleKanbanRemove (source), consumed by HandleKanbanAdd (target).
-    private KanbanCard? _draggedCard;
-
     protected override void OnInitialized()
     {
         _kanbanColumns[0].Cards.AddRange(new[]
         {
-            new KanbanCard("k1", "Design mockups",   "Create UI wireframes for all components"),
-            new KanbanCard("k2", "Write specs",      "Document the API surface"),
-            new KanbanCard("k3", "Set up CI/CD",     "GitHub Actions pipeline"),
+            new KanbanCard("k1", "Design mockups",    "Create UI wireframes for all components"),
+            new KanbanCard("k2", "Write specs",       "Document the API surface"),
+            new KanbanCard("k3", "Set up CI/CD",      "GitHub Actions pipeline"),
         });
         _kanbanColumns[1].Cards.AddRange(new[]
         {
@@ -351,23 +461,6 @@
         });
     }
 
-    // onRemove fires on the source BEFORE onAdd fires on the target,
-    // so _draggedCard is always set when HandleKanbanAdd runs.
-    private void HandleKanbanRemove(KanbanColumn col, (int OldIndex, int NewIndex) args)
-    {
-        if (args.OldIndex < 0 || args.OldIndex >= col.Cards.Count) { return; }
-        _draggedCard = col.Cards[args.OldIndex];
-        col.Cards.RemoveAt(args.OldIndex);
-    }
-
-    private void HandleKanbanAdd(KanbanColumn col, (int OldIndex, int NewIndex) args)
-    {
-        if (_draggedCard is null) { return; }
-        var idx = Math.Clamp(args.NewIndex, 0, col.Cards.Count);
-        col.Cards.Insert(idx, _draggedCard);
-        _draggedCard = null;
-    }
-
     // ── Clone mode ────────────────────────────────────────────────────────
     private List<BasicItem> _cloneSource =
     [
@@ -375,16 +468,6 @@
     ];
 
     private List<BasicItem> _cloneTarget = [];
-
-    // OnAdd on the target: OldIndex is the source item's position in _cloneSource.
-    // The source list is unchanged in clone mode, so the index is always valid.
-    private void HandleCloneAdd((int OldIndex, int NewIndex) args)
-    {
-        if (args.OldIndex < 0 || args.OldIndex >= _cloneSource.Count) { return; }
-        var copy = _cloneSource[args.OldIndex];
-        var idx  = Math.Clamp(args.NewIndex, 0, _cloneTarget.Count);
-        _cloneTarget.Insert(idx, copy);
-    }
 
     // ── Locked items ──────────────────────────────────────────────────────
     private record LockedItem(string Title, bool Locked);

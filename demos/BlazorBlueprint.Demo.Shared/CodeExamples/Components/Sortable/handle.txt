@@ -1,22 +1,36 @@
-@* Set Handle to a CSS class to restrict dragging to a specific element inside each item *@
-<BbDragDrop TItem="MyItem"
+@* Handle — only elements with the Handle CSS class can initiate a drag.
+   Wrap the handle in a <button> with a descriptive aria-label for accessibility. *@
+<BbDragDrop TItem="TaskItem"
             Items="_items"
-            Handle="drag-handle"
+            Handle="bb-drag-handle"
+            AriaLabel="Sortable list with drag handles"
             OnUpdate="@(args => SortList(_items, args))"
             Class="flex flex-col gap-2">
     <ItemTemplate Context="item">
-        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card select-none">
-            @* Only this element initiates drag *@
-            <span class="drag-handle cursor-grab text-muted-foreground hover:text-foreground" aria-hidden="true">⠿</span>
-            <span class="text-sm font-medium">@item.Title</span>
-        </div>
+        <BbItem Variant="ItemVariant.Outline" Class="select-none">
+            <BbItemMedia>
+                <button class="bb-drag-handle cursor-grab text-muted-foreground hover:text-foreground
+                               transition-colors focus-visible:outline-none focus-visible:ring-2
+                               focus-visible:ring-ring rounded"
+                        aria-label="Drag to reorder @item.Title"
+                        type="button">
+                    <LucideIcon Name="grip-vertical" Size="16" aria-hidden="true" />
+                </button>
+            </BbItemMedia>
+            <BbItemContent>
+                <BbItemTitle>@item.Title</BbItemTitle>
+            </BbItemContent>
+        </BbItem>
     </ItemTemplate>
 </BbDragDrop>
 
 @code {
-    private record MyItem(string Title);
+    private record TaskItem(string Title);
 
-    private List<MyItem> _items = [new("Item A"), new("Item B"), new("Item C")];
+    private List<TaskItem> _items =
+    [
+        new("Design system"), new("Build components"), new("Write tests"),
+    ];
 
     private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
     {

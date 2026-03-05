@@ -1,39 +1,49 @@
-@* Set Filter to a CSS class to mark items as non-draggable (locked).
-   Draggable items can still be reordered; locked items stay in place. *@
-<BbDragDrop TItem="TaskItem"
+@* ItemDisabled — predicate returns true for items that cannot be dragged.
+   Disabled items render with draggable="false" and no drag ARIA attributes. *@
+<BbDragDrop TItem="PrefItem"
             Items="_items"
-            Filter="item-locked"
+            ItemDisabled="@(item => item.Locked)"
+            AriaLabel="Sortable preferences list"
             OnUpdate="@(args => SortList(_items, args))"
             Class="flex flex-col gap-2">
     <ItemTemplate Context="item">
-        <div class="flex items-center gap-3 p-3 rounded-lg border bg-card text-sm select-none @(item.Locked ? "item-locked opacity-60" : "cursor-grab")">
+        <BbItem Variant="ItemVariant.Outline"
+                Class="@(item.Locked ? "opacity-60 cursor-not-allowed select-none" : "cursor-grab active:cursor-grabbing select-none")">
+            <BbItemMedia>
+                @if (item.Locked)
+                {
+                    <LucideIcon Name="lock" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                }
+                else
+                {
+                    <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                }
+            </BbItemMedia>
+            <BbItemContent>
+                <BbItemTitle>@item.Title</BbItemTitle>
+            </BbItemContent>
             @if (item.Locked)
             {
-                <span aria-label="Locked">🔒</span>
+                <BbItemActions>
+                    <BbBadge Variant="BadgeVariant.Secondary">
+                        <LucideIcon Name="lock" Size="10" Class="mr-1" aria-hidden="true" />
+                        Locked
+                    </BbBadge>
+                </BbItemActions>
             }
-            else
-            {
-                <span class="text-muted-foreground" aria-hidden="true">⠿</span>
-            }
-            <span>@item.Title</span>
-            @if (item.Locked)
-            {
-                <BbBadge Variant="BadgeVariant.Secondary" Class="ml-auto text-xs">Locked</BbBadge>
-            }
-        </div>
+        </BbItem>
     </ItemTemplate>
 </BbDragDrop>
 
 @code {
-    private record TaskItem(string Title, bool Locked);
+    private record PrefItem(string Title, bool Locked);
 
-    private List<TaskItem> _items =
+    private List<PrefItem> _items =
     [
         new("Required: Terms of Service", Locked: true),
         new("Optional: Marketing emails",  Locked: false),
         new("Required: Privacy policy",    Locked: true),
         new("Optional: Newsletter",        Locked: false),
-        new("Optional: Product updates",   Locked: false),
     ];
 
     private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)

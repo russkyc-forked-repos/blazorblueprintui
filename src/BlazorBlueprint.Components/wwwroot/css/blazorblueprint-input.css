@@ -484,3 +484,36 @@
   from { width: 100%; }
   to { width: 0%; }
 }
+
+/* ── BbDragDrop — HTML5 Drag and Drop ────────────────────────────────────── */
+@layer components {
+  /* Container base */
+  .bb-drag-list {
+    position: relative;
+  }
+
+  /* Item being dragged from this list — kept in flow but dimmed */
+  .bb-drag-list > [draggable="true"].opacity-50 {
+    pointer-events: none;
+  }
+
+  /* Slot currently targeted by a dragged item */
+  .bb-drag-over {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
+
+  /* Hint shown in an empty list while dragging over it */
+  .bb-drag-empty-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 2px dashed hsl(var(--primary) / 0.4);
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    pointer-events: none;
+  }
+}

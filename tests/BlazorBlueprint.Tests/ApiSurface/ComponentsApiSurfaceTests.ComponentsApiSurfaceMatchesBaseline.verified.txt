@@ -876,16 +876,14 @@
   - ChildContent : RenderFragment
 
 ### BbDragDrop`1 (BlazorBlueprint.Components)
-  - Animation : Int32
+  - AriaLabel : String
   - Class : String
-  - Filter : String
-  - ForceFallback : Boolean
   - Group : String
   - Handle : String
-  - Id : String
+  - ItemDisabled : Func<TItem, Boolean>
   - ItemTemplate : RenderFragment<TItem>
   - Items : IList<TItem>
-  - OnAdd : EventCallback<ValueTuple<Int32, Int32>>
+  - OnAdd : EventCallback<ValueTuple<TItem, Int32, Int32>>
   - OnRemove : EventCallback<ValueTuple<Int32, Int32>>
   - OnUpdate : EventCallback<ValueTuple<Int32, Int32>>
   - Pull : String

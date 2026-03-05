@@ -1,35 +1,46 @@
-@* Pull="clone" copies items into the target; the source list is never modified.
-   OnAdd on the target uses OldIndex (position in source) to insert a copy. *@
+@* Clone mode — Pull="clone" copies items to the target; OnRemove never fires on the source.
+   OnAdd receives the item directly — insert it at args.NewIndex. *@
 <div class="grid grid-cols-2 gap-4">
     <div class="space-y-2">
-        <h3 class="text-sm font-semibold text-muted-foreground">Source (items stay)</h3>
+        <p class="text-sm font-medium text-muted-foreground">Source — items stay</p>
         <BbDragDrop TItem="MyItem"
                     Items="_source"
-                    Group="clone-group"
+                    Group="clone-demo"
                     Pull="clone"
+                    AriaLabel="Clone source list"
                     OnUpdate="@(args => SortList(_source, args))"
                     Class="flex flex-col gap-2">
             <ItemTemplate Context="item">
-                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
-                    <span aria-hidden="true">📌</span>
-                    <span>@item.Title</span>
-                </div>
+                <BbItem Variant="ItemVariant.Outline" Class="cursor-grab active:cursor-grabbing select-none">
+                    <BbItemMedia>
+                        <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                    </BbItemMedia>
+                    <BbItemContent>
+                        <BbItemTitle>@item.Title</BbItemTitle>
+                    </BbItemContent>
+                </BbItem>
             </ItemTemplate>
         </BbDragDrop>
     </div>
     <div class="space-y-2">
-        <h3 class="text-sm font-semibold text-muted-foreground">Target (receives copies)</h3>
+        <p class="text-sm font-medium text-muted-foreground">Target — receives copies</p>
         <BbDragDrop TItem="MyItem"
                     Items="_target"
-                    Group="clone-group"
+                    Group="clone-demo"
+                    AriaLabel="Clone target list"
                     OnUpdate="@(args => SortList(_target, args))"
-                    OnAdd="HandleCloneAdd"
-                    Class="flex flex-col gap-2 min-h-[60px] rounded-lg border-2 border-dashed border-muted-foreground/30 p-2">
+                    OnAdd="@(args => _target.Insert(Math.Clamp(args.NewIndex, 0, _target.Count), args.Item))"
+                    Class="flex flex-col gap-2 min-h-[60px] rounded-lg border-2 border-dashed
+                           border-muted-foreground/30 p-2">
             <ItemTemplate Context="item">
-                <div class="flex items-center gap-2 p-3 rounded-lg border bg-card text-sm select-none cursor-grab">
-                    <span aria-hidden="true">📎</span>
-                    <span>@item.Title</span>
-                </div>
+                <BbItem Variant="ItemVariant.Outline" Class="cursor-grab active:cursor-grabbing select-none">
+                    <BbItemMedia>
+                        <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground" aria-hidden="true" />
+                    </BbItemMedia>
+                    <BbItemContent>
+                        <BbItemTitle>@item.Title</BbItemTitle>
+                    </BbItemContent>
+                </BbItem>
             </ItemTemplate>
         </BbDragDrop>
     </div>
@@ -40,13 +51,6 @@
 
     private List<MyItem> _source = [new("Template A"), new("Template B"), new("Template C")];
     private List<MyItem> _target = [];
-
-    // OldIndex is the position in _source (unchanged in clone mode).
-    private void HandleCloneAdd((int OldIndex, int NewIndex) args)
-    {
-        if (args.OldIndex < 0 || args.OldIndex >= _source.Count) { return; }
-        _target.Insert(Math.Clamp(args.NewIndex, 0, _target.Count), _source[args.OldIndex]);
-    }
 
     private static void SortList<T>(IList<T> list, (int OldIndex, int NewIndex) args)
     {
