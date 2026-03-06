@@ -463,7 +463,9 @@ else
         var newPos = oldPos with { Column = column, Row = row, ColumnSpan = columnSpan, RowSpan = rowSpan };
 
         _context.UpdateWidgetPositionSilent(widgetId, column, row, columnSpan, rowSpan);
+        _insideCompact = true;
         _context.Notify();
+        _insideCompact = false;
 
         if (OnWidgetResizeEnd.HasDelegate)
         {
@@ -540,7 +542,9 @@ else
             }
         }
 
+        _insideCompact = true;
         _context.Notify();
+        _insideCompact = false;
 
         if (dragArgs != null)
         {
