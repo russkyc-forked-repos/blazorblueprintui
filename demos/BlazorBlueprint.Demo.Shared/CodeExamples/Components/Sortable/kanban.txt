@@ -19,19 +19,16 @@
                         OnAdd="(args) => OnKanbanAdd(column, args)"
                         Class="min-h-24 rounded-lg border border-dashed p-2">
                 <ItemTemplate Context="task">
-                    @* Wrap BbCard in a div so Sortable.js tracks a single DOM node. *@
-                    <div class="mb-2 last:mb-0">
-                        <BbCard Class="cursor-grab active:cursor-grabbing">
-                            <BbCardHeader Class="pb-2">
-                                <BbCardTitle Class="text-sm font-medium">@task.Title</BbCardTitle>
-                            </BbCardHeader>
-                            <BbCardContent>
-                                <BbBadge Variant="@GetPriorityVariant(task.Priority)">
-                                    @task.Priority
-                                </BbBadge>
-                            </BbCardContent>
-                        </BbCard>
-                    </div>
+                    <BbCard Class="cursor-grab active:cursor-grabbing">
+                        <BbCardHeader Class="pb-2">
+                            <BbCardTitle Class="text-sm font-medium">@task.Title</BbCardTitle>
+                        </BbCardHeader>
+                        <BbCardContent>
+                            <BbBadge Variant="@GetPriorityVariant(task.Priority)">
+                                @task.Priority
+                            </BbBadge>
+                        </BbCardContent>
+                    </BbCard>
                 </ItemTemplate>
             </BbSortable>
         </div>

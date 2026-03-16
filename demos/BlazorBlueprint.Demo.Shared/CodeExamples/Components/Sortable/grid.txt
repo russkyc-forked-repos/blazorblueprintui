@@ -7,16 +7,13 @@
             AriaLabel="Sortable card grid"
             OnUpdate="HandleUpdate">
     <ItemTemplate Context="card">
-        @* Wrap Razor components in a <div> so Sortable.js tracks a single DOM node. *@
-        <div>
-            <BbCard Class="cursor-grab active:cursor-grabbing select-none">
-                <BbCardContent Class="pt-6">
-                    <div class="@($"h-16 rounded-md {card.Color} flex items-center justify-center")">
-                        <span class="text-white font-semibold text-sm">@card.Label</span>
-                    </div>
-                </BbCardContent>
-            </BbCard>
-        </div>
+        <BbCard Class="cursor-grab active:cursor-grabbing select-none">
+            <BbCardContent Class="pt-6">
+                <div class="@($"h-16 rounded-md {card.Color} flex items-center justify-center")">
+                    <span class="text-white font-semibold text-sm">@card.Label</span>
+                </div>
+            </BbCardContent>
+        </BbCard>
     </ItemTemplate>
 </BbSortable>
 

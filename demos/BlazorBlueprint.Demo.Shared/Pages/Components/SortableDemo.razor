@@ -138,31 +138,19 @@
             </p>
         </div>
 
-        <div class="rounded-md border bg-muted/40 px-4 py-3 text-sm text-muted-foreground flex items-start gap-2">
-            <LucideIcon Name="info" Size="16" Class="mt-0.5 shrink-0" />
-            <span>
-                When using Razor components inside <code class="bg-muted px-1 py-0.5 rounded">ItemTemplate</code>,
-                wrap them in a plain <code class="bg-muted px-1 py-0.5 rounded">&lt;div&gt;</code> so Sortable.js
-                can track each item as a single DOM node.
-            </span>
-        </div>
-
         <BbSortable TItem="ColorCard"
                     Items="@_gridCards"
                     Layout="SortableLayout.Grid"
                     AriaLabel="Sortable card grid"
                     OnUpdate="@((args) => MoveWithin(_gridCards, args))">
             <ItemTemplate Context="card">
-                @* Wrap BbCard in a <div> — Sortable.js needs a single DOM root per item. *@
-                <div role="listitem">
-                    <BbCard Class="cursor-grab active:cursor-grabbing select-none">
-                        <BbCardContent Class="pt-6">
-                            <div class="@($"h-16 rounded-md {card.Color} flex items-center justify-center")">
-                                <span class="text-white font-semibold text-sm">@card.Label</span>
-                            </div>
-                        </BbCardContent>
-                    </BbCard>
-                </div>
+                <BbCard Class="cursor-grab active:cursor-grabbing select-none">
+                    <BbCardContent Class="pt-6">
+                        <div class="@($"h-16 rounded-md {card.Color} flex items-center justify-center")">
+                            <span class="text-white font-semibold text-sm">@card.Label</span>
+                        </div>
+                    </BbCardContent>
+                </BbCard>
             </ItemTemplate>
         </BbSortable>
 
@@ -184,15 +172,6 @@
             </p>
         </div>
 
-        <div class="rounded-md border bg-muted/40 px-4 py-3 text-sm text-muted-foreground flex items-start gap-2">
-            <LucideIcon Name="info" Size="16" Class="mt-0.5 shrink-0" />
-            <span>
-                When using Razor components inside <code class="bg-muted px-1 py-0.5 rounded">ItemTemplate</code>,
-                wrap them in a plain <code class="bg-muted px-1 py-0.5 rounded">&lt;div&gt;</code> so Sortable.js
-                can track each item as a single DOM node.
-            </span>
-        </div>
-
         <div class="grid grid-cols-3 gap-4">
             @foreach (var column in _kanbanColumns)
             {
@@ -210,19 +189,16 @@
                                 OnAdd="@((args) => KanbanOnAdd(column, args))"
                                 Class="min-h-24 rounded-lg border border-dashed p-2">
                         <ItemTemplate Context="task">
-                            @* Wrap BbCard in a <div> — Sortable.js needs a single DOM root per item. *@
-                            <div role="listitem" class="mb-2 last:mb-0">
-                                <BbCard Class="cursor-grab active:cursor-grabbing">
-                                    <BbCardHeader Class="pb-2">
-                                        <BbCardTitle Class="text-sm font-medium">@task.Title</BbCardTitle>
-                                    </BbCardHeader>
-                                    <BbCardContent>
-                                        <BbBadge Variant="@GetPriorityVariant(task.Priority)">
-                                            @task.Priority
-                                        </BbBadge>
-                                    </BbCardContent>
-                                </BbCard>
-                            </div>
+                            <BbCard Class="cursor-grab active:cursor-grabbing">
+                                <BbCardHeader Class="pb-2">
+                                    <BbCardTitle Class="text-sm font-medium">@task.Title</BbCardTitle>
+                                </BbCardHeader>
+                                <BbCardContent>
+                                    <BbBadge Variant="@GetPriorityVariant(task.Priority)">
+                                        @task.Priority
+                                    </BbBadge>
+                                </BbCardContent>
+                            </BbCard>
                         </ItemTemplate>
                     </BbSortable>
                 </div>
@@ -246,9 +222,8 @@
                 (e.g., "Item moved from position 2 to position 4.").
             </AccessibilityItem>
             <AccessibilityItem>
-                Add <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listitem"</code> to the root
-                element of each <code class="text-xs bg-muted px-1 py-0.5 rounded">ItemTemplate</code>
-                to complete the list landmark semantics for screen readers.
+                Each item is automatically wrapped in a container element for consistent
+                DOM structure and Blazor diffing.
             </AccessibilityItem>
         </AriaAttributes>
         <KeyboardNavigation>
@@ -268,10 +243,9 @@
         <ApiReference ComponentName="BbSortable&lt;TItem&gt;">
             <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;TItem&gt;?">
                 Render fragment used to display each item. The <code>context</code> variable
-                provides the data item. When the root element is a Razor component, wrap it in
-                a <code>&lt;div&gt;</code> so Sortable.js can track it as a single DOM node.
+                provides the data item.
             </ApiParameter>
-            <ApiParameter Name="Items" Type="List&lt;TItem&gt;">
+            <ApiParameter Name="Items" Type="IList&lt;TItem&gt;">
                 The list of items to render and reorder.
             </ApiParameter>
             <ApiParameter Name="OnUpdate" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
@@ -290,9 +264,9 @@
                 Use together with <code>OnRemove</code> on the source to stage the item via a
                 shared field and then insert it here.
             </ApiParameter>
-            <ApiParameter Name="Group" Type="string" Default="Guid">
+            <ApiParameter Name="Group" Type="string" Default="auto">
                 Sortable.js group name. Lists sharing the same name can exchange items.
-                Defaults to a unique GUID (isolated list).
+                Defaults to a unique auto-generated value (isolated list).
             </ApiParameter>
             <ApiParameter Name="Pull" Type="string?" Default="null">
                 Pull behaviour: <code>"clone"</code> copies items; <code>null</code> moves them.
@@ -317,7 +291,7 @@
                 Visual layout: <code>List</code> (vertical column) or <code>Grid</code>
                 (two-column grid). Override columns via <code>Class</code>.
             </ApiParameter>
-            <ApiParameter Name="Id" Type="string" Default="Guid">
+            <ApiParameter Name="Id" Type="string" Default="auto">
                 HTML element id for the sortable container. Auto-generated by default.
             </ApiParameter>
             <ApiParameter Name="AriaLabel" Type="string?">

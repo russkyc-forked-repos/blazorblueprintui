@@ -479,6 +479,17 @@
   }
 }
 
+/* Sortable — global styles for ghost/fallback elements created outside the component tree */
+@layer utilities {
+  .sortable-ghost {
+    visibility: hidden;
+  }
+
+  .sortable-fallback {
+    opacity: 1 !important;
+  }
+}
+
 /* Alert countdown bar animation */
 @keyframes bb-alert-countdown {
   from { width: 100%; }
