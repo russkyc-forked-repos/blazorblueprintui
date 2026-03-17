@@ -97,7 +97,8 @@
         </div>
         <div class="max-w-md">
             <BbFormFieldCheckboxGroup TValue="string"
-                                     @bind-Values="_validatedTopics"
+                                     Values="_validatedTopics"
+                                     ValuesChanged="OnValidatedTopicsChanged"
                                      Label="Topics of interest"
                                      HelperText="Select at least one topic."
                                      ErrorText="@_topicsError">
@@ -158,6 +159,13 @@
     private IReadOnlyCollection<string> _validatedTopics = Array.Empty<string>();
     private string? _topicsError;
     private bool _topicsSubmitted;
+
+    private void OnValidatedTopicsChanged(IReadOnlyCollection<string> values)
+    {
+        _validatedTopics = values;
+        _topicsError = null;
+        _topicsSubmitted = false;
+    }
 
     private void ValidateTopics()
     {

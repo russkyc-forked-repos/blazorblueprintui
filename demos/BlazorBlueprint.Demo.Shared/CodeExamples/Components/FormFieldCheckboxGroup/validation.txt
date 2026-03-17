@@ -1,5 +1,6 @@
 <BbFormFieldCheckboxGroup TValue="string"
-                         @bind-Values="selectedTopics"
+                         Values="selectedTopics"
+                         ValuesChanged="OnTopicsChanged"
                          Label="Topics of interest"
                          HelperText="Select at least one topic."
                          ErrorText="@errorMessage">
@@ -13,6 +14,12 @@
 @code {
     private IReadOnlyCollection<string> selectedTopics = Array.Empty<string>();
     private string? errorMessage;
+
+    private void OnTopicsChanged(IReadOnlyCollection<string> values)
+    {
+        selectedTopics = values;
+        errorMessage = null; // Clear error on change
+    }
 
     private void Validate()
     {

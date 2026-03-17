@@ -80,7 +80,8 @@
             </p>
         </div>
         <div class="max-w-lg">
-            <BbFormFieldDateRangePicker @bind-Value="_validatedRange"
+            <BbFormFieldDateRangePicker Value="_validatedRange"
+                                       ValueChanged="OnValidatedRangeChanged"
                                        Label="Booking dates"
                                        HelperText="Required. Select your check-in and check-out dates."
                                        ErrorText="@_rangeError" />
@@ -138,6 +139,13 @@
     private DateRange? _validatedRange;
     private string? _rangeError;
     private bool _rangeSubmitted;
+
+    private void OnValidatedRangeChanged(DateRange? value)
+    {
+        _validatedRange = value;
+        _rangeError = null;
+        _rangeSubmitted = false;
+    }
 
     private void ValidateRange()
     {
