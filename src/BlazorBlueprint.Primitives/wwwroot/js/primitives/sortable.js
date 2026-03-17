@@ -85,8 +85,13 @@ export async function init(id, group, pull, put, sort, handle, filter, component
 
   const mod = await loadSortable();
   const Sortable = mod.default || mod.Sortable || mod;
+  // Debounce swap detection to prevent grid oscillation — when SortableJS
+  // swaps two adjacent grid items, the cursor can end up over the swapped
+  // item and trigger an immediate reverse swap, causing a visual "dance".
+  let lastMoveTime = 0;
+
   const sortable = new Sortable(el, {
-    animation: 200,
+    animation: 150,
     group: {
       name: group,
       pull: pull ?? true,
@@ -96,6 +101,14 @@ export async function init(id, group, pull, put, sort, handle, filter, component
     sort: sort,
     forceFallback: forceFallback,
     handle: handle || undefined,
+    onMove: () => {
+      const now = Date.now();
+      if (now - lastMoveTime < 200) {
+        return false;
+      }
+      lastMoveTime = now;
+      return true;
+    },
     onUpdate: (event) => {
       // Blazor tracks DOM nodes by reference, so we must revert SortableJS's
       // DOM mutation before Blazor re-renders. To prevent a visible flash,
