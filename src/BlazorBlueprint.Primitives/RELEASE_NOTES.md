@@ -1,10 +1,5 @@
-## What's New in v3.7.1
+## What's New in v3.7.2
 
-### New Features
+### Bug Fixes
 
-- **HierarchyManager** — Added `Count` property to get the total number of items in the hierarchy
-- **HierarchyManager** — Added `GetAllItems()` method to retrieve all items without traversal
-
-### Performance
-
-- **DataGrid** — Improved hierarchy rendering performance for large datasets by exposing efficient item access on `HierarchyManager`
+- **DataGrid**: Fix `OnToggleExpand` not being wired to the primitives context when the expand column registers after initial render, which prevented space/enter keyboard expansion from working.
